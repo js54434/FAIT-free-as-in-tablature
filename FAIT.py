@@ -10,7 +10,7 @@ import MidiPlayer
 import SelectionRectangle
 import Cursor
 
-#import fluidsynth
+import fluidsynth
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -339,9 +339,18 @@ class TablatureWindow(QtGui.QGraphicsView):
                     self.midiPlayer.playNote(self, i, pitch)                
             
         # spacebar, backspace, or delete remove data
-        if key in (QtCore.Qt.Key_Space, QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
+        if key in (QtCore.Qt.Key_Space, QtCore.Qt.Key_Backspace):
+            if self.selectionRectangle.rect().width() == 0 or \
+                    self.selectionRectangle.rect().height() == 0:
+                self.tracks[i].removeFromTab()
+            else:
+                # remove selected items
+                for j in range(len(self.tracks)):
+                    self.tracks[j].removeSelectedRegion()
             self.unSelect()
-            self.tracks[i].removeFromTab()
+            
+        # insert and delete
+        #, QtCore.Qt.Key_Delete
                         
                     
     def mousePressEvent(self, e):

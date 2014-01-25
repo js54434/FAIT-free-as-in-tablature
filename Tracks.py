@@ -250,6 +250,9 @@ class Track:
     def getCopiedSelectionCoordinates(self):
         return self.graphics.getCopiedSelectionCoordinates()
         
+    def removeSelectedRegion(self):
+        return self.graphics.removeSelectedRegion()
+        
 
 class TablatureGraphics:
     def __init__(*args, **kwargs):
@@ -748,6 +751,10 @@ class TablatureGraphics:
     def copySelectionCoordinates(self):
         self.copiedSelectionCoordinates = self.selectionCoordinates[:]
         self.copiedSelectionIndices = self.selectionIndices[:]
+        
+    def removeSelectedRegion(self):
+        iPos1, jPos1, iPos2, jPos2 = self.selectionIndices
+        self.removeNumbersFromRegion(iPos1, jPos1, iPos2, jPos2)
 
     def pasteSelectedRegion(self, iPos):
         if len(self.copiedItems) > 0:
