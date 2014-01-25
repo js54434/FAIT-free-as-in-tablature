@@ -291,6 +291,8 @@ class TablatureGraphics:
         self.copiedItems = []
 
         self.stringItems = []    # contains QGraphicsLineItems corresponding to each string
+        self.barLineItems = []
+        self.sectionLineItems = []
         self.tuningTextItems = []
                                     
         self.numberZValue = 1
@@ -299,6 +301,8 @@ class TablatureGraphics:
         self.gridZValue = -20
         self.stringZValue = -20
         self.cursorZValue = -10
+        self.barLineZValue = -15
+        self.sectionLineZValue = -14
                 
         # note: all positions in this class are absolute
         # position offset
@@ -333,7 +337,9 @@ class TablatureGraphics:
                         
     def drawStuff(self):
         self.drawTuning()
-        self.drawStringItems()        
+        self.drawStringItems()       
+        self.drawBarLineItems()
+        self.drawSectionLineItems() 
                         
     def drawNumber(self, iPos, jPos, val):
         # check if number's already there
@@ -432,6 +438,7 @@ class TablatureGraphics:
             QtCore.QPoint(x2,y1)]))        
                 
     def drawStringItems(self):
+        # draw strings
         for i in range(0, self.numYGrid):
             x1 = self.convertIndexToPositionX(0)
             y1 = self.convertIndexToPositionY(0.5+i)
@@ -442,6 +449,46 @@ class TablatureGraphics:
             self.stringItems[i].setZValue(self.stringZValue)
             self.scene.addItem(self.stringItems[i])
             
+    def drawBarLineItems(self):
+        # initialize bar lines
+        
+        # to begin with, bars will be located every 16 spaces
+        numBarLines = int(math.floor(self.numXGrid / 16)) + 1
+        
+        # upper and lower bounds
+        y1 = self.convertIndexToPositionY(0)
+        y2 = self.convertIndexToPositionY(self.numYGrid)
+        
+        for i in range(0, numBarLines):
+            x1 = self.convertIndexToPositionX((i-1)*16)
+            x2 = x1
+            self.barLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+            self.barLineItems[i].setPen(QtCore.Qt.black)
+            self.barLineItems[i].setZValue(self.barLineZValue)
+            self.scene.addItem(self.barLineItems[i])
+            
+    def drawSectionLineItems(self):
+        # initialize the thicker lines that separate sections
+        # to begin with, the whole track's just one section
+
+        # upper and lower bounds
+        y1 = self.convertIndexToPositionY(0) - 5
+        y2 = self.convertIndexToPositionY(self.numYGrid) + 5
+        
+        x1 = self.convertIndexToPositionX(0)
+        x2 = x1
+        self.sectionLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+        self.sectionLineItems[0].setPen(QtGui.QPen(QtCore.Qt.black, 3))
+        self.sectionLineItems[0].setZValue(self.sectionLineZValue)
+        self.scene.addItem(self.sectionLineItems[0])
+
+        x1 = self.convertIndexToPositionX(self.numXGrid)
+        x2 = x1
+        self.sectionLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+        self.sectionLineItems[1].setPen(QtGui.QPen(QtCore.Qt.black, 3))
+        self.sectionLineItems[1].setZValue(self.sectionLineZValue)
+        self.scene.addItem(self.sectionLineItems[1])
+                
     def setTuning(self, tuning):
         self.stringTuning = tuning
             
