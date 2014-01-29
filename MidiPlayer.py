@@ -6,6 +6,7 @@ import os
 
 class MidiPlayer:
     def __init__(self):
+        
         # make this platform-dependent
         self.fs = fluidsynth.Synth()
         self.fs.start()
@@ -15,6 +16,11 @@ class MidiPlayer:
 
         sfid = self.fs.sfload("/usr/share/sounds/sf2/FluidR3_GM.sf2")
         self.fs.program_select(0, sfid, 0, 0)
+        
+        self.setTempo(120)
+        
+    def setTempo(self, tempo):
+        self.tempo = tempo
                 
     def playNote(self, parent, trackNum, pitch, volume=96, duration=0.5):
         worker = PlayNote(self, self.fs, trackNum, pitch, volume, duration)
