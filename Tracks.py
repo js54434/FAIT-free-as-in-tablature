@@ -29,51 +29,25 @@ class Track:
             self.setNumYGrid(int(kwargs['numYGrid']))
         else:
             self.setNumYGrid(6)
-        
-        # current cursor index coordinates
-        self.setCursorIndices(0, 0)
-                        
-        # tuning
-        self.setTuning([40, 45, 50, 55, 59, 64])
-        
             
-    def moveCursorToPosition(self, xPos, yPos):
-        iPos = self.graphics.getCursorIndexX(xPos)
-        jPos = self.graphics.getCursorIndexY(yPos)
-        self.moveCursorToIndex(iPos, jPos)
+        self.tunings = {
+            'standard' : [40, 45, 50, 55, 59, 64],
+            'dropped-D' : [38, 45, 50, 55, 59, 64],
+            'DADGAD' : [38, 45, 50, 55, 57, 62]}
+        if 'tuning' in kwargs:
+            if kwargs['tuning'] in self.tunings:
+                self.setTuning(kwargs['tuning'])
+            else:
+                self.setTuning('standard')
+                print('unknown tuning specified')
+        else:
+            self.setTuning('standard')
+            
+        # set default lyrics
+        if 'hasVocals' in kwargs:
+            self.setLyrics("Hello world")
         
-    def moveCursorToIndex(self, iPos, jPos):
-        # check if bounds are breached, and if cursor's already there, 
-        # and if not, move cursor
-        if iPos == self.iCursor and jPos == self.jCursor:
-            return
-        if iPos >= 0 and iPos < self.numXGrid:
-            if jPos >= 0 and jPos < self.numYGrid:
-                self.setCursorIndices(iPos, jPos)
-        return
-        
-    def setCursorIndices(self, i, j):
-        self.iCursor = i
-        self.jCursor = j
-        self.graphics.setCursorIndices(i, j)
-
-    def moveCursorUp(self):
-        self.moveCursorToIndex(self.iCursor, self.jCursor-1)
-        
-    def moveCursorDown(self):
-        self.moveCursorToIndex(self.iCursor, self.jCursor+1)
-
-    def moveCursorLeft(self):
-        self.moveCursorToIndex(self.iCursor-1, self.jCursor)
-
-    def moveCursorRight(self):
-        self.moveCursorToIndex(self.iCursor+1, self.jCursor)
-    
-    def getCursorQPolygon(self):
-        return self.graphics.getCursorQPolygon()
-
-    def getCursorQRect(self):
-        return self.graphics.getCursorQRect()
+                                
 
     def generateGridQPolyline(self):
         self.graphics.generateGridQPolyline()
@@ -82,42 +56,28 @@ class Track:
     def convertNumberToPitch(self, jPos, pitchNum):
         return pitchNum + self.stringTuning[(self.numStrings-1) - jPos]   
                 
-    def setTuning(self, tuning):
-        self.stringTuning = tuning
-        self.graphics.setTuning(tuning)
-
-    def addToTab(*args):
-        #    def addToTab(self, scene, iPos, jPos, val):
-        if len(args) == 2:
-            self = args[0]
-            val = args[1]
-            iPos = self.iCursor
-            jPos = self.jCursor
-        elif len(args) == 4:
-            self, iPos, jPos, val = args
+    def setTuning(self, tuningStr):
+        if self.numYGrid == 6:
+            if tuningStr in self.tunings:
+                tuningNumbers = self.tunings[tuningStr]
+            else: 
+                tuningNumbers = [40, 45, 50, 55, 59, 64]
         else:
-            print('Warning: wrong number of arguments!')
-            
+            # start from lowest string and count upward
+            tuningNumbers = [40, 45, 50, 55, 59, 64]
+            for i in range(6, self.numYGrid):
+                tuningNumbers.append(64 + 5*i)
+                
+        self.stringTuning = tuningNumbers
+        self.graphics.setTuning(tuningNumbers)
+
+    def addToTab(self, iPos, jPos, val):            
         self.graphics.drawNumber(iPos, jPos, val)
             
-    def getFromTab(*args):
-        self = args[0]
-        if len(args) == 1:
-            iPos = self.iCursor
-            jPos = self.jCursor
-        else:
-            iPos = args[1]
-            jPos = args[2]
+    def getFromTab(self, iPos, jPos):
         return self.graphics.getValue(iPos, jPos)
                     
-    def removeFromTab(*args):
-        self = args[0]
-        if len(args) == 1:
-            iPos = self.iCursor
-            jPos = self.jCursor
-        elif len(args) == 3:
-            iPos = args[1]
-            jPos = args[2]
+    def removeFromTab(self, iPos, jPos):
         self.graphics.removeNumber(iPos, jPos)
 
     def makeNumberWhite(self, iPos, jPos):
@@ -224,11 +184,23 @@ class Track:
     def trackBottom(self):
         return self.graphics.trackBottom()
         
+    def lyricsTop(self):
+        return self.graphics.lyricsTop()
+        
+    def lyricsBottom(self):
+        return self.graphics.lyricsBottom()
+        
     def isPositionInsideBoundary(self, xPos, yPos):
         return self.graphics.isPositionInsideBoundary(xPos, yPos)
                 
     def isPositionOnStrings(self, xPos, yPos):
         return self.graphics.isPositionOnStrings(xPos, yPos)
+        
+    def isPositionOnLyrics(self, xPos, yPos):
+        if self.hasVocals == True:
+            return self.graphics.isPositionOnLyrics(xPos, yPos)
+        else:
+            return False
         
     def returnAlignedCoordX(self, x, direction):
         return self.graphics.returnAlignedCoordX(x, direction)
@@ -243,6 +215,9 @@ class Track:
     def removeLyricsRegion(self):
         self.hasVocals = False
         self.removeLyricsRegion()
+        
+    def setLyrics(self, text):
+        self.graphics.setLyrics(text)
         
     def drawStuff(self):
         self.graphics.drawStuff()
@@ -291,6 +266,8 @@ class TablatureGraphics:
         self.copiedItems = []
 
         self.stringItems = []    # contains QGraphicsLineItems corresponding to each string
+        self.barLineItems = []
+        self.sectionLineItems = []
         self.tuningTextItems = []
                                     
         self.numberZValue = 1
@@ -298,7 +275,9 @@ class TablatureGraphics:
         self.numberBackgroundZValue = -15
         self.gridZValue = -20
         self.stringZValue = -20
-        self.cursorZValue = -10
+#        self.cursorZValue = -10
+        self.barLineZValue = -15
+        self.sectionLineZValue = -14
                 
         # note: all positions in this class are absolute
         # position offset
@@ -333,7 +312,9 @@ class TablatureGraphics:
                         
     def drawStuff(self):
         self.drawTuning()
-        self.drawStringItems()        
+        self.drawStringItems()       
+        self.drawBarLineItems()
+        self.drawSectionLineItems() 
                         
     def drawNumber(self, iPos, jPos, val):
         # check if number's already there
@@ -432,16 +413,57 @@ class TablatureGraphics:
             QtCore.QPoint(x2,y1)]))        
                 
     def drawStringItems(self):
+        # draw strings
         for i in range(0, self.numYGrid):
             x1 = self.convertIndexToPositionX(0)
             y1 = self.convertIndexToPositionY(0.5+i)
             x2 = self.convertIndexToPositionX(self.numXGrid)
             y2 = y1
             self.stringItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
-            self.stringItems[i].setPen(QtCore.Qt.gray)
+            self.stringItems[i].setPen(QtCore.Qt.lightGray)
             self.stringItems[i].setZValue(self.stringZValue)
             self.scene.addItem(self.stringItems[i])
             
+    def drawBarLineItems(self):
+        # initialize bar lines
+        
+        # to begin with, bars will be located every 16 spaces
+        numBarLines = int(math.floor(self.numXGrid / 16)) + 1
+        
+        # upper and lower bounds
+        y1 = self.convertIndexToPositionY(0)
+        y2 = self.convertIndexToPositionY(self.numYGrid)
+        
+        for i in range(0, numBarLines):
+            x1 = self.convertIndexToPositionX((i-1)*16)
+            x2 = x1
+            self.barLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+            self.barLineItems[i].setPen(QtCore.Qt.black)
+            self.barLineItems[i].setZValue(self.barLineZValue)
+            self.scene.addItem(self.barLineItems[i])
+            
+    def drawSectionLineItems(self):
+        # initialize the thicker lines that separate sections
+        # to begin with, the whole track's just one section
+
+        # upper and lower bounds
+        y1 = self.convertIndexToPositionY(0) - 5
+        y2 = self.convertIndexToPositionY(self.numYGrid) + 5
+        
+        x1 = self.convertIndexToPositionX(0)
+        x2 = x1
+        self.sectionLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+        self.sectionLineItems[0].setPen(QtGui.QPen(QtCore.Qt.black, 3))
+        self.sectionLineItems[0].setZValue(self.sectionLineZValue)
+        self.scene.addItem(self.sectionLineItems[0])
+
+        x1 = self.convertIndexToPositionX(self.numXGrid)
+        x2 = x1
+        self.sectionLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+        self.sectionLineItems[1].setPen(QtGui.QPen(QtCore.Qt.black, 3))
+        self.sectionLineItems[1].setZValue(self.sectionLineZValue)
+        self.scene.addItem(self.sectionLineItems[1])
+                
     def setTuning(self, tuning):
         self.stringTuning = tuning
             
@@ -600,23 +622,13 @@ class TablatureGraphics:
             return self.convertIndexToPositionY(i1-i)
         elif i > self.numYGrid-1:                  # too low
             return self.convertIndexToPositionY(self.numYGrid-1 + (i1-i))
-        
-    def getCursorQPolygon(self):
-        x1 = self.convertIndexToPositionX(self.iCursor)
-        y1 = self.convertIndexToPositionY(self.jCursor)
-        x2 = self.convertIndexToPositionX(self.iCursor+1)
-        y2 = self.convertIndexToPositionY(self.jCursor+1)
-        return QtGui.QPolygonF([QtCore.QPoint(x1, y1), 
-                                 QtCore.QPoint(x1, y2), 
-                                 QtCore.QPoint(x2, y2), 
-                                 QtCore.QPoint(x2, y1)])
                                  
-    def getCursorQRect(self):
-        x1 = self.convertIndexToPositionX(self.iCursor)
-        y1 = self.convertIndexToPositionY(self.jCursor)
-        x2 = self.convertIndexToPositionX(self.iCursor+1)
-        y2 = self.convertIndexToPositionY(self.jCursor+1)
-        return QtCore.QRectF(x1, y1, x2-x1, y2-y1)
+#    def getCursorQRect(self):
+#        x1 = self.convertIndexToPositionX(self.iCursor)
+#        y1 = self.convertIndexToPositionY(self.jCursor)
+#        x2 = self.convertIndexToPositionX(self.iCursor+1)
+#        y2 = self.convertIndexToPositionY(self.jCursor+1)
+#        return QtCore.QRectF(x1, y1, x2-x1, y2-y1)
 
                     
     def isPositionInsideBoundary(self, xPos, yPos):
@@ -627,8 +639,8 @@ class TablatureGraphics:
             return False      
 
     def isPositionOnStrings(self, xPos, yPos):
-        if (xPos >= self.left() and xPos <= self.right() and
-            yPos >= self.trackTop() and yPos <= self.trackBottom()):
+        if (xPos >= self.left() and xPos < self.right() and
+            yPos >= self.trackTop() and yPos < self.trackBottom()):
             return True
         else:
             return False        
@@ -638,9 +650,16 @@ class TablatureGraphics:
         # side
         # yes otherwise
         isTooHigh = (y1 < self.trackTop() and y2 < self.trackTop())
-        isTooLow = (y1 > self.trackBottom() and y2 > self.trackBottom())
+        isTooLow = (y1 >= self.trackBottom() and y2 >= self.trackBottom())
         isTooLeft = (x1 < self.left() and x2 < self.left())
-        isTooRight = (x1 > self.right() and x2 > self.right())
+        isTooRight = (x1 >= self.right() and x2 >= self.right())
+        return not (isTooHigh or isTooLow or isTooLeft or isTooRight)
+        
+    def isPositionOnLyrics(self, xPos, yPos):
+        isTooHigh = (yPos < self.lyricsTop())
+        isTooLow = (yPos >= self.trackTop())
+        isTooLeft = (xPos < self.left())
+        isTooRight = (xPos >= self.right())
         return not (isTooHigh or isTooLow or isTooLeft or isTooRight)
             
     def top(self):
@@ -655,6 +674,12 @@ class TablatureGraphics:
     def trackBottom(self):
         return self.bottom()
         
+    def lyricsTop(self):
+        return self.top() + self.vocalsMar
+        
+    def lyricsBottom(self):
+        return self.top() + self.vocalsMar + self.vocalsHeight
+        
     def left(self):
         return self.x0
         
@@ -667,11 +692,7 @@ class TablatureGraphics:
     def setNumYGrid(self, numYGrid):
         self.numYGrid = numYGrid
         self.numStrings = self.numYGrid
-        
-    def setCursorIndices(self, i, j):
-        self.iCursor = i
-        self.jCursor = j
-        
+                
     def setX0(self, x0):
         self.x0 = x0
         
@@ -848,3 +869,18 @@ class TablatureGraphics:
         if len(items) == 1:
             items[0][2].setBrush(QtCore.Qt.black)
             items[0][3].setBrush(QtCore.Qt.white)
+            
+    def setLyrics(self, text):
+        self.lyricsItem = QtGui.QGraphicsTextItem(text)
+        x = self.left() + self.lyricsItem.boundingRect().width() / 2
+        y = self.lyricsBottom() + self.lyricsItem.boundingRect().height() / 2
+        self.lyricsItem.setPos(x, y)
+#        self.lyricsItem.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        self.lyricsItem.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.lyricsItem.setZValue(50)
+        self.scene.addItem(self.lyricsItem)
+        
+        
+        
+        
+        
