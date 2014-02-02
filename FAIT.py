@@ -4,6 +4,7 @@
 import time
 import random
 import sys
+import threading
 from PyQt4 import QtGui, QtCore
 
 import Tracks
@@ -210,7 +211,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         
         self.visualizeBoundaries()
         
-        self.setTempo(200)
+        self.setTempo(140)
 
         
     def initializeTracks(self):
@@ -266,6 +267,10 @@ class TablatureWindow(QtGui.QGraphicsView):
         
         
     def keyPressEvent(self, e):
+        i = self.trackFocusNum
+        key = e.key()
+        modifiers = QtGui.QApplication.keyboardModifiers()
+
         if self.cursorItem.isInLyrics == True:
             if key == QtCore.Qt.Key_Down:
                 self.cursorItem.leaveLyrics()
@@ -274,10 +279,6 @@ class TablatureWindow(QtGui.QGraphicsView):
             return
         # else, cursor is in track, and we do the following
         
-        i = self.trackFocusNum
-        key = e.key()
-
-        modifiers = QtGui.QApplication.keyboardModifiers()
         
         if key in self.arrowKeys:
             if modifiers == QtCore.Qt.ShiftModifier:    # if shift is held
@@ -363,8 +364,8 @@ class TablatureWindow(QtGui.QGraphicsView):
                     pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num)
                     self.midiPlayer.playNote(self, i, pitch)                
             
-        # backspace removes data
-        if key == QtCore.Qt.Key_Backspace:
+        # space and backspace removes data
+        if key == QtCore.Qt.Key_Backspace or key == QtCore.Qt.Key_Space:
             if self.selectionRectangle.rect().width() == 0 or \
                     self.selectionRectangle.rect().height() == 0:
                 self.cursorItem.removeFromTab()
@@ -377,8 +378,8 @@ class TablatureWindow(QtGui.QGraphicsView):
         # insert and delete
         #, QtCore.Qt.Key_Delete
         
-        # spacebar starts or stops playback
-        if key == QtCore.Qt.Key_Space:
+        # "p" starts or stops playback
+        if key == QtCore.Qt.Key_P:
             if self.isPlaying == False:
                 self.beginPlayback()
             else:
@@ -674,10 +675,13 @@ class TablatureWindow(QtGui.QGraphicsView):
     def beginPlayback(self):
         self.isPlaying = True
         print('playback')
+        # start playback:
+        self.playback = MidiPlayer.Playback(self)
         
     def stopPlayback(self):
         self.isPlaying = False
         print('stopPlayback')
+        self.playback.stopPlayback()
         
     def getSaveFileData(self):
         # return a string of what we want to save
