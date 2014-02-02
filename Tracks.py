@@ -317,6 +317,37 @@ class TablatureGraphics:
         self.drawSectionLineItems() 
                         
     def drawNumber(self, iPos, jPos, val):
+        # first check if we have an asterisk
+        if val == '*':
+            items = self.getGraphicsItems(iPos, jPos)
+            if len(items) == 0:
+                text = val
+                textItem = QtGui.QGraphicsSimpleTextItem(text)
+                textItem.setZValue(self.numberZValue)
+                textItem.setBrush(QtCore.Qt.black)
+                
+                self.scene.addItem(textItem)
+                
+                # little background rectangle to block strings from showing
+                rectItem = QtGui.QGraphicsPolygonItem()
+                rectItem.setZValue(self.numberBackgroundZValue)
+                rectItem.setBrush(QtCore.Qt.white)
+                rectItem.setPen(QtCore.Qt.transparent)
+                
+                self.scene.addItem(rectItem)
+                self.setTextItemPosition([iPos, jPos, textItem, rectItem, val])
+                self.numberItems.append([iPos, jPos, textItem, rectItem, val])
+                
+            elif len(items) > 0:
+                items = self.getGraphicsItems(iPos, jPos)
+                textItem = items[2]
+                rectItem = items[3]
+                textItem.setText(str(val))
+                self.setTextItemPosition(items)     # adjust position for new number
+                items[4] = val
+            else:
+                print('Warning: ' + str(len(items)) + ' numbers at ' + str(iPos) + ', ' + str(jPos))
+        
         # check if number's already there
         items = self.getGraphicsItems(iPos, jPos)
         if len(items) == 0:

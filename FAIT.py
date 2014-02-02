@@ -345,7 +345,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                 self.cursorItem.addToTab(num)
                             
                 pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num)
-                self.midiPlayer.playNote(self, i, pitch)
+                self.midiPlayer.playNote(self, i, pitch, duration=0.3)
             else:
                 # if there is a number, check if could be the first digit of a two-digit number
                 maxVal = 24         # highest number allowed
@@ -356,13 +356,18 @@ class TablatureWindow(QtGui.QGraphicsView):
                     self.cursorItem.addToTab(num2)
                     
                     pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num2)
-                    self.midiPlayer.playNote(self, i, pitch)
+                    self.midiPlayer.playNote(self, i, pitch, duration=0.3)
                 else:
                     # otherwise, just add new number
                     self.cursorItem.addToTab(num)
                     
                     pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num)
-                    self.midiPlayer.playNote(self, i, pitch)                
+                    self.midiPlayer.playNote(self, i, pitch, duration=0.3)      
+                    
+        # asterisk (*) stops note
+        if key == QtCore.Qt.Key_Asterisk:
+            self.unSelect()
+            self.cursorItem.addToTab('*')
             
         # space and backspace removes data
         if key == QtCore.Qt.Key_Backspace or key == QtCore.Qt.Key_Space:

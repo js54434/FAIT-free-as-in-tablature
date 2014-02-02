@@ -29,14 +29,14 @@ class MidiPlayer:
     def setTempo(self, tempo):
         self.tempo = tempo
                 
-    def playNote(self, parent, trackNum, pitch, volume=96, duration=0.3):
+    def playNote(self, parent, trackNum, pitch, volume=96, duration=-1):
         worker = PlayNote(self, self.fs, trackNum, pitch, volume, duration)
         worker.start()
         
         return worker
         
-    def stopNote(self):
-        self.fs.system_reset()      # stops everything  
+#    def stopEverything(self):
+#        self.fs.system_reset()      # stops everything  
         
 
 class Playback:
@@ -46,34 +46,50 @@ class Playback:
         self.cursorItem = self._parent.cursorItem
         self.tracks = self._parent.tracks
         self.tempo = self.midiPlayer.tempo
-        
-        self.doStopThread = False
+
+        self.notesPlaying = []        
 
         self.timer = QtCore.QTimer()
         QtCore.QObject.connect(
             self.timer, 
             QtCore.SIGNAL("timeout()"),
-            self.doStuff)
+            self.playOneStep)
             
         dt = int(1000.0 * 60.0 / (4.0 * self.tempo))
         self.timer.start(dt)
         
-    def doStuff(self):
+    def playOneStep(self):
         # find all notes on all tracks at current cursor position
         iPos = self.cursorItem.iCursor
         for i in range(0, len(self.tracks)):
             for j in range(0, self.tracks[i].numYGrid):
                 val = self.tracks[i].getFromTab(iPos, j)
-                if val > -1:
-                    pitch = self.tracks[i].convertNumberToPitch(j, val)
-                    self.midiPlayer.playNote(self, i, pitch)
-
-#                    worker = PlayNote(self, self.fs, i, 
+                
+                if val == '*':
+                    # get whatever notes are still playing on the appropriate string
+                    noteInfo = [x for x in self.notesPlaying if x[1] == i and x[2] == j]
+                    # silence notes if they were still playing
+                    if len(noteInfo) > 0:
+                        noteInfo = noteInfo[0]
+                        noteInfo[0].stopNote()
+                        self.notesPlaying.remove(noteInfo)
                         
+                elif val > -1:
+                    pitch = self.tracks[i].convertNumberToPitch(j, val)
+                    noteThread = self.midiPlayer.playNote(self, i, pitch)
+                    # store trackNum, stringNum, and thread object of currently playing notes
+                    self.notesPlaying.append([noteThread, i, j])
+                    
+        # update graphics by moving cursor
         self.cursorItem.moveRight()
         
     def stopPlayback(self):
         self.timer.stop()
+        for i in range(0, len(self.notesPlaying)):
+            noteInfo = self.notesPlaying[i]
+            noteInfo[0].stopNote()
+        # remove from list
+        self.notesPlaying = []        
 
 
 class PlayNote(threading.Thread):
@@ -92,15 +108,25 @@ class PlayNote(threading.Thread):
         self.startTime = time.time()
         self.fs.noteon(0, self.pitch, self.volume)
 
-        # wait and check roughly every 100 ms to see if something stops it by calling self.event.set()
-        num = int(math.ceil(self.duration / 0.1));
-        dt = self.duration / num
-        for i in range(num):
-            if self.event.is_set() or (self.duration < time.time() - self.startTime):
-                break
-            self.event.wait(dt)
+        # if self.duration was set to -1, play indefinitely
+        if self.duration == -1:
+            while not self.event.is_set():
+                self.event.wait(0.1)        # wait 100 ms
+            self.fs.noteoff(0, self.pitch)
+        
+        elif self.duration > 0:
+            # wait and check roughly every 100 ms to see if something stops it by calling self.event.set()
+            num = int(math.ceil(self.duration / 0.1));
+            dt = self.duration / num
+            for i in range(num):
+                if self.event.is_set() or (self.duration < time.time() - self.startTime):
+                    break
+                self.event.wait(dt)
 
-        self.fs.noteoff(0, self.pitch)
+            self.fs.noteoff(0, self.pitch)
+        
+        else:
+            print('Warning: note duration of ' + str(self.duration) + ' is not a valid number')
     
     def stopNote(self):
         self.event.set()
