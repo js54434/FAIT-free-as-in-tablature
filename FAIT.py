@@ -204,7 +204,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         end_time = time.time()
         print("Initializing time was %g seconds" % (end_time - start_time))
         
-        self.visualizeBoundaries()
+#        self.visualizeBoundaries()
         
         self.setTempo(140)
 

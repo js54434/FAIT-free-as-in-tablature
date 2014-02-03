@@ -75,6 +75,13 @@ class Playback:
                         self.notesPlaying.remove(noteInfo)
                         
                 elif val > -1:
+                    # stop any notes that are still playing on the string
+                    noteInfo = [x for x in self.notesPlaying if x[1] == i and x[2] == j]
+                    if len(noteInfo) > 0:
+                        noteInfo = noteInfo[0]
+                        noteInfo[0].stopNote()
+                        self.notesPlaying.remove(noteInfo)
+                    
                     pitch = self.tracks[i].convertNumberToPitch(j, val)
                     noteThread = self.midiPlayer.playNote(self, i, pitch)
                     # store trackNum, stringNum, and thread object of currently playing notes

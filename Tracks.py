@@ -269,6 +269,7 @@ class TablatureGraphics:
         self.stringItems = []    # contains QGraphicsLineItems corresponding to each string
         self.barLineItems = []
         self.sectionLineItems = []
+        self.tickMarkItems = []
         self.tuningTextItems = []
                                     
         self.numberZValue = 1
@@ -279,6 +280,7 @@ class TablatureGraphics:
 #        self.cursorZValue = -10
         self.barLineZValue = -15
         self.sectionLineZValue = -14
+        self.tickMarkZValue = -15
                 
         # note: all positions in this class are absolute
         # position offset
@@ -315,6 +317,7 @@ class TablatureGraphics:
         self.drawTuning()
         self.drawStringItems()       
         self.drawBarLineItems()
+        self.drawTickMarkItems()
         self.drawSectionLineItems() 
                         
     def drawNumber(self, iPos, jPos, val):
@@ -480,6 +483,22 @@ class TablatureGraphics:
             self.barLineItems[i].setPen(QtCore.Qt.black)
             self.barLineItems[i].setZValue(self.barLineZValue)
             self.scene.addItem(self.barLineItems[i])
+            
+    def drawTickMarkItems(self):
+        numTickMarks = int(math.floor(self.numXGrid / 4)) + 1
+        
+        y1 = self.convertIndexToPositionY(self.numYGrid)
+        y2 = y1 + 10
+        
+        for i in range(0, numTickMarks):
+            x1 = self.convertIndexToPositionX((i-1)*4)
+            x2 = x1
+            tickMarkItem = QtGui.QGraphicsLineItem(x1, y1, x2, y2)
+            tickMarkItem.setPen(QtCore.Qt.gray)
+            tickMarkItem.setZValue(self.tickMarkZValue)
+            self.tickMarkItems.append(tickMarkItem)
+            self.scene.addItem(tickMarkItem)
+            
             
     def drawSectionLineItems(self):
         # initialize the thicker lines that separate sections
