@@ -68,6 +68,7 @@ class Cursor(QtGui.QGraphicsRectItem):
         # make cursor opaque again
         self.setPen(QtCore.Qt.black)
         self.setBrush(QtCore.Qt.black)
+        self.updateHighlighting()
         
         # restart timer
         self.timer.start()

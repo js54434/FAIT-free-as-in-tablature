@@ -88,22 +88,17 @@ class MainWindow(QtGui.QMainWindow):
         editMenu.addAction(copySelection)
         editMenu.addAction(pasteSelection)
         
-#        selectNextWord = QtGui.QAction('Paste', self)
-#        selectNextWord.setShortcut(QtGui.QKeySequence.Paste)
-#        selectNextWord.triggered.connect(self.tablatureWindow.selectNextWord)
-
-        # test an overlay button
 #        icon = QtGui.QIcon("drawnStartButton.png")
-        icon = QtGui.QIcon("startButton-AsIs.png")
+#        icon = QtGui.QIcon("startButton-AsIs.png")
 #        icon = QtGui.QIcon("startButton-grainy.png")
-#        icon = QtGui.QIcon("startButton-sharp.png")
+        icon = QtGui.QIcon("startButton-sharp.png")
 #        icon = QtGui.QIcon("pauseButton.png")
         
-        self.overlayButton = QtGui.QPushButton(icon, "")
-        self.overlayButton.setIconSize(QtCore.QSize(110, 110))
-        self.overlayButton.setParent(self)
-        self.overlayButton.setGeometry(40, 40, 100, 100)
-
+        self.playButton = QtGui.QPushButton(icon, "")
+        self.playButton.setIconSize(QtCore.QSize(110, 110))
+        self.playButton.setParent(self)
+        self.playButton.setGeometry(40, 40, 100, 100)
+        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), self.tablatureWindow.togglePlayback)
 
         self.positionWindow()       # center and almost maximize window
         
@@ -385,10 +380,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         
         # "p" starts or stops playback
         if key == QtCore.Qt.Key_P:
-            if self.isPlaying == False:
-                self.beginPlayback()
-            else:
-                self.stopPlayback()
+            self.togglePlayback()
                 
     
     def mousePressEvent(self, e):
@@ -553,6 +545,8 @@ class TablatureWindow(QtGui.QGraphicsView):
         for i in range(0, len(self.tracks)):
             self.tracks[i].unSelect()
             
+        self.cursorItem.updateHighlighting()
+            
     def scrollIfNecessary(*args):
         self = args[0]
         if len(args) == 3:
@@ -676,16 +670,27 @@ class TablatureWindow(QtGui.QGraphicsView):
                     self.tracks[i].addToTab(jx, jy, val)
         t2 = time.time()
         print("Random number generating time was %g seconds" % (t2 - t1))    
+
+    def togglePlayback(self):
+        if self.isPlaying == False:
+            self.beginPlayback()
+        else:
+            self.stopPlayback()
+            
+        self.setFocus()     # make sure QGraphicsView doesn't lose focus when overlaying playButton is pressed
         
     def beginPlayback(self):
         self.isPlaying = True
         print('playback')
         # start playback:
+        # test an overlay button
+        self._parent.playButton.setIcon(QtGui.QIcon("pauseButton.png"))
         self.playback = MidiPlayer.Playback(self)
         
     def stopPlayback(self):
         self.isPlaying = False
         print('stopPlayback')
+        self._parent.playButton.setIcon(QtGui.QIcon("startButton-sharp.png"))
         self.playback.stopPlayback()
         
     def getSaveFileData(self):

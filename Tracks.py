@@ -258,7 +258,8 @@ class TablatureGraphics:
         else:
             self.setNumYGrid(6)
         
-        self.fontSize = 16
+        self.numberFontOdd = QtGui.QFont('Helvetica', 11)
+        self.numberFontEven = QtGui.QFont('Helvetica', 11)
 
         self.numberItems = []       # list of QGraphicsItems corresponding
                                     # to displayed text of numbers
@@ -325,7 +326,10 @@ class TablatureGraphics:
                 textItem = QtGui.QGraphicsSimpleTextItem(text)
                 textItem.setZValue(self.numberZValue)
                 textItem.setBrush(QtCore.Qt.black)
-                
+                if iPos % 2 == 1:
+                    textItem.setFont(self.numberFontOdd)
+                else:
+                    textItem.setFont(self.numberFontEven)
                 self.scene.addItem(textItem)
                 
                 # little background rectangle to block strings from showing
@@ -348,13 +352,17 @@ class TablatureGraphics:
             else:
                 print('Warning: ' + str(len(items)) + ' numbers at ' + str(iPos) + ', ' + str(jPos))
         
-        # check if number's already there
+        # check if number's already there; if not, make new graphics item
         items = self.getGraphicsItems(iPos, jPos)
         if len(items) == 0:
             text = str(val)
             textItem = QtGui.QGraphicsSimpleTextItem(text)
             textItem.setZValue(self.numberZValue)
             textItem.setBrush(QtCore.Qt.black) 
+            if iPos % 2 == 1:
+                textItem.setFont(self.numberFontOdd)
+            else:
+                textItem.setFont(self.numberFontEven)
                 
             # add to scene
             self.scene.addItem(textItem)
@@ -759,10 +767,16 @@ class TablatureGraphics:
         for i in range(0, len(newShadedItems)):
             newShadedItems[i][2].setBrush(QtCore.Qt.white)       # make numbers white
             newShadedItems[i][3].setBrush(QtCore.Qt.black)       # make background black
+
             
         # unshade all self.shadedItems that are no longer selected
         unShadeTheseItems = [x for x in self.shadedItems if x not in newShadedItems]
         for i in range(0, len(unShadeTheseItems)):
+            iPos = unShadeTheseItems[i][0]
+#            if iPos % 2 == 0:
+#                unShadeTheseItems[i][2].setBrush(QtCore.Qt.black)
+#            else:                
+#                unShadeTheseItems[i][2].setBrush(QtCore.Qt.lightGray)
             unShadeTheseItems[i][2].setBrush(QtCore.Qt.black)
             unShadeTheseItems[i][3].setBrush(QtCore.Qt.white)
             
