@@ -10,254 +10,17 @@ from PyQt4 import QtGui, QtCore
 class Track:
     def __init__(*args, **kwargs):
         self = args[0]
-        # second argument should be "scene", but we'll just pass it to self.graphics
-        self.graphics = TablatureGraphics(args[1], **kwargs)
+        self._parent = args[1]
+        self.scene = self._parent.scene
+        
+        # note: all positions in this class are absolute
+        # position offset
+        self.x0 = 0
+        self.y0 = 0
+        
+        self.dx = 20    # default rectangle width
+        self.dy = 20    # default rectangle height
 
-        if 'hasVocals' in kwargs:
-            if kwargs['hasVocals'] == 'True':
-                self.hasVocals = True
-            else:
-                self.hasVocals = False
-        else:
-            self.hasVocals = False
-            
-        if 'numXGrid' in kwargs:
-            self.setNumXGrid(int(kwargs['numXGrid']))
-        else:
-            self.setNumXGrid(4000)
-        if 'numYGrid' in kwargs:
-            self.setNumYGrid(int(kwargs['numYGrid']))
-        else:
-            self.setNumYGrid(6)
-            
-        self.tunings = {
-            'standard' : [40, 45, 50, 55, 59, 64],
-            'dropped-D' : [38, 45, 50, 55, 59, 64],
-            'DADGAD' : [38, 45, 50, 55, 57, 62]}
-        if 'tuning' in kwargs:
-            if kwargs['tuning'] in self.tunings:
-                self.setTuning(kwargs['tuning'])
-            else:
-                self.setTuning('standard')
-                print('unknown tuning specified')
-        else:
-            self.setTuning('standard')
-            
-        # set default lyrics
-        if 'hasVocals' in kwargs:
-            self.setLyrics("Hello world")
-        
-                                
-
-    def generateGridQPolyline(self):
-        self.graphics.generateGridQPolyline()
-
-    # return pitch in midi integer notation
-    def convertNumberToPitch(self, jPos, pitchNum):
-        return pitchNum + self.stringTuning[(self.numStrings-1) - jPos]   
-                
-    def setTuning(self, tuningStr):
-        if self.numYGrid == 6:
-            if tuningStr in self.tunings:
-                tuningNumbers = self.tunings[tuningStr]
-            else: 
-                tuningNumbers = [40, 45, 50, 55, 59, 64]
-        else:
-            # start from lowest string and count upward
-            tuningNumbers = [40, 45, 50, 55, 59, 64]
-            for i in range(6, self.numYGrid):
-                tuningNumbers.append(64 + 5*i)
-                
-        self.stringTuning = tuningNumbers
-        self.graphics.setTuning(tuningNumbers)
-
-    def addToTab(self, iPos, jPos, val):            
-        self.graphics.drawNumber(iPos, jPos, val)
-            
-    def getFromTab(self, iPos, jPos):
-        return self.graphics.getValue(iPos, jPos)
-                    
-    def removeFromTab(self, iPos, jPos):
-        self.graphics.removeNumber(iPos, jPos)
-
-    def makeNumberWhite(self, iPos, jPos):
-        self.graphics.setNumberColor(iPos, jPos, QtCore.Qt.white)            
-
-    def makeNumberBlack(self, iPos, jPos):
-        self.graphics.setNumberColor(iPos, jPos, QtCore.Qt.black) 
-            
-    def setNumXGrid(self, numXGrid):
-        self.numXGrid = numXGrid
-        self.graphics.setNumXGrid(numXGrid)
-    
-    def setNumYGrid(self, numYGrid):
-        self.numYGrid = numYGrid
-        self.numStrings = self.numYGrid
-        self.graphics.setNumYGrid(numYGrid)
-        
-    def setX0(self, x0):
-        self.graphics.setX0(x0)
-        
-    def setY0(self, y0):
-        self.graphics.setY0(y0)
-        
-    def toString(self):
-        data = [[x[0],x[1],x[4]] for x in self.graphics.numberItems]
-        return str(data)
-        
-    def loadFromString(self, st):
-        data = ast.literal_eval(st)
-        for i in range(0, len(data)):
-            x = data[i]
-            self.graphics.drawNumber(x[0], x[1], x[2])
-                
-    def width(self):
-        return self.graphics.width
-        
-    def height(self):
-        return self.graphics.height
-        
-    def setFocus(self):
-        self.graphics.setFocus()
-        
-    def removeFocus(self):
-        self.graphics.removeFocus()
-        
-    def shadeSelectedNumbers(self, x11, y11, x22, y22):
-        self.graphics.shadeSelectedNumbers(x11, y11, x22, y22)
-        
-    def cutSelectedRegion(self):
-        self.graphics.cutSelectedRegion()
-        
-    def copySelectedRegion(self):
-        didCopy = self.graphics.copySelectedRegion()
-        return didCopy
-        
-    def pasteSelectedRegion(self, iPos):
-        self.graphics.pasteSelectedRegion(iPos)
-        
-    def getCopiedItems(self):
-        return self.graphics.getCopiedItems()
-        
-    def pasteFromOtherTrack(self, iPos, copiedItems):
-        self.graphics.pasteGraphicsItems(iPos, copiedItems)
-        
-    def isSomethingSelected(self):
-        return self.graphics.isSomethingSelected()
-        
-    def isSomeRegionSelected(self):
-        return self.graphics.isSomeRegionSelected()
-                    
-    def wasSomeRegionCopied(self):
-        return self.graphics.wasSomeRegionCopied()
-        
-    def unSelect(self):
-        self.graphics.unShade()
-            
-    def shadeAtIndex(self, iPos, jPos):
-        self.graphics.shadeAtIndex(iPos, jPos)
-        
-    def unShadeAtIndex(self, iPos, jPos):
-        self.graphics.unShadeAtIndex(iPos, jPos)    
-        
-    def drawTrackStrings(self):
-        self.graphics.drawStringItems()
-    
-    def drawTuning(self):
-        self.graphics.drawTuning()
-        
-    def top(self):
-        return self.graphics.top()
-
-    def bottom(self):
-        return self.graphics.bottom()
-
-    def left(self):
-        return self.graphics.left()
-
-    def right(self):
-        return self.graphics.right()
-        
-    def trackTop(self):
-        return self.graphics.trackTop()
-
-    def trackBottom(self):
-        return self.graphics.trackBottom()
-        
-    def lyricsTop(self):
-        return self.graphics.lyricsTop()
-        
-    def lyricsBottom(self):
-        return self.graphics.lyricsBottom()
-        
-    def isPositionInsideBoundary(self, xPos, yPos):
-        return self.graphics.isPositionInsideBoundary(xPos, yPos)
-                
-    def isPositionOnStrings(self, xPos, yPos):
-        return self.graphics.isPositionOnStrings(xPos, yPos)
-        
-    def isPositionOnLyrics(self, xPos, yPos):
-        if self.hasVocals == True:
-            return self.graphics.isPositionOnLyrics(xPos, yPos)
-        else:
-            return False
-        
-    def returnAlignedCoordX(self, x, direction):
-        return self.graphics.returnAlignedCoordX(x, direction)
-        
-    def returnAlignedCoordY(self, y, direction):
-        return self.graphics.returnAlignedCoordY(y, direction)
-
-    def addLyricsRegion(self):
-        self.hasVocals = True
-        self.graphics.addLyricsRegion()
-        
-    def removeLyricsRegion(self):
-        self.hasVocals = False
-        self.removeLyricsRegion()
-        
-    def setLyrics(self, text):
-        self.graphics.setLyrics(text)
-        
-    def drawStuff(self):
-        self.graphics.drawStuff()
-        
-    def getCopiedSelectionCoordinates(self):
-        return self.graphics.getCopiedSelectionCoordinates()
-        
-    def removeSelectedRegion(self):
-        return self.graphics.removeSelectedRegion()
-        
-
-class TablatureGraphics:
-    def __init__(*args, **kwargs):
-        self = args[0]
-        self.scene = args[1]
-        if 'hasVocals' in kwargs:
-            if kwargs['hasVocals'] == 'True':
-                self.hasVocals = True
-            else:
-                self.hasVocals = False
-        else:
-            self.hasVocals = False
-        
-        if 'hasVocals' in kwargs:
-            if kwargs['hasVocals'] == 'True':
-                self.hasVocals = True
-            else:
-                self.hasVocals = False
-        else:
-            self.hasVocals = False
-            
-        if 'numXGrid' in kwargs:
-            self.setNumXGrid(int(kwargs['numXGrid']))
-        else:
-            self.setNumXGrid(4000)
-        if 'numYGrid' in kwargs:
-            self.setNumYGrid(int(kwargs['numYGrid']))
-        else:
-            self.setNumYGrid(6)
-        
         self.numberFontOdd = QtGui.QFont('Helvetica', 11)
         self.numberFontEven = QtGui.QFont('Helvetica', 11)
 
@@ -281,23 +44,72 @@ class TablatureGraphics:
         self.barLineZValue = -15
         self.sectionLineZValue = -14
         self.tickMarkZValue = -15
-                
-        # note: all positions in this class are absolute
-        # position offset
-        self.x0 = 0
-        self.y0 = 0
-        
-        self.dx = 20    # default rectangle width
-        self.dy = 20    # default rectangle height
-        
+                        
         self.selectionIndices = [0, 0, 0, 0]
         self.copiedSelectionIndices = [0, 0, 0, 0]
         self.selectionCoordinates = [0, 0, 0, 0]
         self.copiedSelectionCoordinates = [0, 0, 0, 0]
 
+        
+        
+        if 'hasVocals' in kwargs:
+            if kwargs['hasVocals'] == 'True':
+                self.hasVocals = True
+            else:
+                self.hasVocals = False
+        else:
+            self.hasVocals = False
+        # set default lyrics
+        
+        if 'numXGrid' in kwargs:
+            self.setNumXGrid(int(kwargs['numXGrid']))
+        else:
+            self.setNumXGrid(4000)
+        if 'numYGrid' in kwargs:
+            self.setNumYGrid(int(kwargs['numYGrid']))
+        else:
+            self.setNumYGrid(6)
+
+        self.tunings = {
+            'standard' : [40, 45, 50, 55, 59, 64],
+            'dropped-D' : [38, 45, 50, 55, 59, 64],
+            'DADGAD' : [38, 45, 50, 55, 57, 62]}
+        if 'tuning' in kwargs:
+            if kwargs['tuning'] in self.tunings:
+                self.setTuning(kwargs['tuning'])
+            else:
+                self.setTuning('standard')
+                print('unknown tuning specified')
+        else:
+            self.setTuning('standard')
+
+        
+
         self.calculateBoundsAndMargins()
+
+        if 'hasVocals' in kwargs:
+            self.setLyrics("Hello world")
+
         
         # self.drawStuff()
+        
+    # return pitch in midi integer notation
+    def convertNumberToPitch(self, jPos, pitchNum):
+        return pitchNum + self.stringTuning[(self.numStrings-1) - jPos]   
+                
+    def setTuning(self, tuningStr):
+        if self.numYGrid == 6:
+            if tuningStr in self.tunings:
+                tuningNumbers = self.tunings[tuningStr]
+            else: 
+                tuningNumbers = [40, 45, 50, 55, 59, 64]
+        else:
+            # start from lowest string and count upward
+            tuningNumbers = [40, 45, 50, 55, 59, 64]
+            for i in range(6, self.numYGrid):
+                tuningNumbers.append(64 + 5*i)
+                
+        self.stringTuning = tuningNumbers
         
     def calculateBoundsAndMargins(self):
         if self.hasVocals:
@@ -320,7 +132,7 @@ class TablatureGraphics:
         self.drawTickMarkItems()
         self.drawSectionLineItems() 
                         
-    def drawNumber(self, iPos, jPos, val):
+    def addToTab(self, iPos, jPos, val):
         # first check if we have an asterisk
         if val == '*':
             items = self.getGraphicsItems(iPos, jPos)
@@ -393,7 +205,7 @@ class TablatureGraphics:
         else:
             print('Warning: ' + str(len(items)) + ' numbers at ' + str(iPos) + ', ' + str(jPos))
         
-    def removeNumber(self, iPos, jPos):
+    def removeFromTab(self, iPos, jPos):
         itemList = self.getGraphicsItems(iPos, jPos)
         if len(itemList) > 0:        
             textItem = itemList[2]
@@ -408,7 +220,7 @@ class TablatureGraphics:
 
             # delete?
             
-    def getValue(self, iPos, jPos):
+    def getFromTab(self, iPos, jPos):
         itemList = self.getGraphicsItems(iPos, jPos)
         if len(itemList) == 0:
             return -1
@@ -521,10 +333,7 @@ class TablatureGraphics:
         self.sectionLineItems[1].setPen(QtGui.QPen(QtCore.Qt.black, 3))
         self.sectionLineItems[1].setZValue(self.sectionLineZValue)
         self.scene.addItem(self.sectionLineItems[1])
-                
-    def setTuning(self, tuning):
-        self.stringTuning = tuning
-            
+                            
     def drawTuning(self):
         for j in range(0, self.numStrings):
             text = self.convertPitchToLetter(self.stringTuning[self.numStrings-1-j])
@@ -714,11 +523,14 @@ class TablatureGraphics:
         return not (isTooHigh or isTooLow or isTooLeft or isTooRight)
         
     def isPositionOnLyrics(self, xPos, yPos):
-        isTooHigh = (yPos < self.lyricsTop())
-        isTooLow = (yPos >= self.trackTop())
-        isTooLeft = (xPos < self.left())
-        isTooRight = (xPos >= self.right())
-        return not (isTooHigh or isTooLow or isTooLeft or isTooRight)
+        if self.hasVocals == True:
+            isTooHigh = (yPos < self.lyricsTop())
+            isTooLow = (yPos >= self.trackTop())
+            isTooLeft = (xPos < self.left())
+            isTooRight = (xPos >= self.right())
+            return not (isTooHigh or isTooLow or isTooLeft or isTooRight)
+        else:
+            return False
             
     def top(self):
         return self.y0
@@ -756,6 +568,12 @@ class TablatureGraphics:
         
     def setY0(self, y0):
         self.y0 = y0
+        
+#    def width(self):
+#        return self.width
+        
+#    def height(self):
+#        return self.height
         
 #    def loadNumberGraphicsFromData(self, data):
 #        # data has already been loaded, so we read from that
@@ -883,7 +701,7 @@ class TablatureGraphics:
         # check mins and maxes
         return [min(x[0], x[2]), min(x[1], x[3]), max(x[0], x[2]), max(x[1], x[3])]
         
-    def pasteGraphicsItems(self, iPos, copiedItems):
+    def pasteFromOtherTrack(self, iPos, copiedItems):
         self.copiedItems = self.cloneItems(copiedItems)
         self.pasteSelectedRegion(iPos)
                 
@@ -914,7 +732,7 @@ class TablatureGraphics:
             
         return copiedItemsClone        
 
-    def unShade(self):
+    def unSelect(self):
         # set numbers to normal
         for i in range(0, len(self.shadedItems)):
             self.shadedItems[i][2].setBrush(QtCore.Qt.black)
@@ -944,6 +762,16 @@ class TablatureGraphics:
         self.lyricsItem.setZValue(50)
         self.scene.addItem(self.lyricsItem)
         
+    def toString(self):
+        data = [[x[0],x[1],x[4]] for x in self.numberItems]
+        return str(data)
+        
+    def loadFromString(self, st):
+        data = ast.literal_eval(st)
+        for i in range(0, len(data)):
+            x = data[i]
+            self.drawNumber(x[0], x[1], x[2])        
+
         
         
         

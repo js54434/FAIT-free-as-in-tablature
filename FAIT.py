@@ -186,9 +186,9 @@ class TablatureWindow(QtGui.QGraphicsView):
         if 'loadFile' in kwargs:
             self.loadTracks(kwargs['loadFile'])
         else:
-            self.tracks = [Tracks.Track(self.scene, hasVocals='True'), 
-                    Tracks.Track(self.scene, numYGrid=7), 
-                    Tracks.Track(self.scene, hasVocals='True')]
+            self.tracks = [Tracks.Track(self, hasVocals='True'), 
+                    Tracks.Track(self, numYGrid=7), 
+                    Tracks.Track(self, hasVocals='True')]
             self.initializeTracks()
 
             self.scene.setSceneRect(QtCore.QRectF(0, 0, 
@@ -224,16 +224,16 @@ class TablatureWindow(QtGui.QGraphicsView):
         for i in range(0, len(self.tracks)):
             if i > 0:
                 self.tracks[i].setX0(self.xMar)
-                self.tracks[i].setY0(self.tracks[i-1].graphics.y0 + \
-                            self.tracks[i-1].graphics.height + self.trackMar)
+                self.tracks[i].setY0(self.tracks[i-1].y0 + \
+                            self.tracks[i-1].height + self.trackMar)
             self.tracks[i].drawStuff()
 
         # calculate window size
-        self.windowSizeX = self.tracks[0].graphics.x0 + \
-                        self.tracks[0].graphics.dx*3 + self.tracks[0].width()
-        self.windowSizeY = self.tracks[0].graphics.y0
+        self.windowSizeX = self.tracks[0].x0 + \
+                        self.tracks[0].dx*3 + self.tracks[0].width
+        self.windowSizeY = self.tracks[0].y0
         for i in range(0, len(self.tracks)):
-            self.windowSizeY = self.windowSizeY + self.tracks[i].height() + self.trackMar
+            self.windowSizeY = self.windowSizeY + self.tracks[i].height + self.trackMar
         
     def defineKeyGroups(self):
         self.numberKeys = (QtCore.Qt.Key_0,
@@ -503,7 +503,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             xx = self.copiedSelectionRectangle.rect()
             x = [xx.x(), xx.y(), xx.x() + xx.width(), xx.y() + xx.height()]
             # shift to cursor position
-            newX0 = self.tracks[self.trackFocusNum].graphics.convertIndexToPositionX(iPos)
+            newX0 = self.tracks[self.trackFocusNum].convertIndexToPositionX(iPos)
             delta_y = self.tracks[self.trackFocusNum].trackTop() - self.tracks[i].trackTop()
             newY0 = x[1] + delta_y
             self.pastedSelectionRectangle.setRect(newX0, newY0, x[2]-x[0], x[3]-x[1])
@@ -518,7 +518,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             xx = self.copiedSelectionRectangle.rect()
             x = [xx.x(), xx.y(), xx.x() + xx.width(), xx.y() + xx.height()]
             # shift to cursor position
-            newX0 = self.tracks[selectedTrackNums[0]].graphics.convertIndexToPositionX(iPos)
+            newX0 = self.tracks[selectedTrackNums[0]].convertIndexToPositionX(iPos)
             self.pastedSelectionRectangle.setRect(newX0, x[1], x[2]-x[0], x[3]-x[1])
             self.update()
 
@@ -556,8 +556,8 @@ class TablatureWindow(QtGui.QGraphicsView):
             x = self.cursorItem.rect().x()
             y = self.cursorItem.rect().y()
             
-        scrollX = 16 * self.tracks[0].graphics.dx
-        scrollY = self.tracks[0].numYGrid * self.tracks[0].graphics.dy
+        scrollX = 16 * self.tracks[0].dx
+        scrollY = self.tracks[0].numYGrid * self.tracks[0].dy
                         
         cursorPoint = self.mapFromScene(x, y)
         x_cur, y_cur = [cursorPoint.x(), cursorPoint.y()]
@@ -740,7 +740,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                 file.readline()                     # blank
                 file.readline()                     # blank
                 
-                self.tracks.append(Tracks.Track(self.scene, numXGrid=str(numXGrid1), 
+                self.tracks.append(Tracks.Track(self, numXGrid=str(numXGrid1), 
                     numYGrid=str(numYGrid1), hasVocals=hasVocals1))
         
         # draw tracks' grids, tunings, and cursor, and arrange tracks

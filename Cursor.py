@@ -45,8 +45,8 @@ class Cursor(QtGui.QGraphicsRectItem):
         self.update()
         
     def moveToPosition(self, trackNum, xPos, yPos):
-        iPos = self.tracks[trackNum].graphics.getCursorIndexX(xPos)
-        jPos = self.tracks[trackNum].graphics.getCursorIndexY(yPos)
+        iPos = self.tracks[trackNum].getCursorIndexX(xPos)
+        jPos = self.tracks[trackNum].getCursorIndexY(yPos)
         self.moveToIndex(trackNum, iPos, jPos)
         
     def enterLyrics(self):
@@ -96,10 +96,10 @@ class Cursor(QtGui.QGraphicsRectItem):
             return
         # else, continue on
         
-        x = self.tracks[trackNum].graphics.convertIndexToPositionX(iPos)
-        y = self.tracks[trackNum].graphics.convertIndexToPositionY(jPos)
-        w = self.tracks[trackNum].graphics.dx
-        h = self.tracks[trackNum].graphics.dy
+        x = self.tracks[trackNum].convertIndexToPositionX(iPos)
+        y = self.tracks[trackNum].convertIndexToPositionY(jPos)
+        w = self.tracks[trackNum].dx
+        h = self.tracks[trackNum].dy
         self.setRect(x, y, w, h)
         
         # update indices

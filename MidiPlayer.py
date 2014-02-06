@@ -94,7 +94,7 @@ class Playback:
                         # noteon and noteoff don't get mixed up
                         else:
                             noteInfo = noteInfo[0]
-                            noteInfo[0].stopNote()
+                            noteInfo[0].stopNote(sameNote='True')
                             self.notesPlaying.remove(noteInfo)
 
                             noteThread = self.midiPlayer.playNote(self, i, newPitch, sameNote='True')
@@ -131,6 +131,7 @@ class PlayNote(threading.Thread):
         
     def run(self):
         self.startTime = time.time()
+        print('sameNote = ' + str(self.sameNote))
         if self.sameNote == 'True':
             self.fs.noteoff(0, self.pitch)
         self.fs.noteon(0, self.pitch, self.volume)
@@ -159,6 +160,7 @@ class PlayNote(threading.Thread):
         else:
             print('Warning: note duration of ' + str(self.duration) + ' is not a valid number')
     
-    def stopNote(self):
+    def stopNote(self, sameNote='False'):
+        self.sameNote = sameNote
         self.event.set()
         

@@ -98,9 +98,9 @@ class SelectionRectangle(QtGui.QGraphicsRectItem):
     def moveUpperBoundOneUnit(self, direction):
         i1 = self.whichTrackHasPoint(self.rect().left(), self.rect().top())
         
-        jPos = self.tracks[i1].graphics.getCursorIndexY(self.rect().top())
-        jPos2 = self.tracks[i1].graphics.getMovedIndexY(jPos, direction)
-        y = self.tracks[i1].graphics.convertIndexToPositionY(jPos2)
+        jPos = self.tracks[i1].getCursorIndexY(self.rect().top())
+        jPos2 = self.tracks[i1].getMovedIndexY(jPos, direction)
+        y = self.tracks[i1].convertIndexToPositionY(jPos2)
         
         r1 = self.rect()
         x1 = r1.left()
@@ -112,9 +112,9 @@ class SelectionRectangle(QtGui.QGraphicsRectItem):
     def moveLowerBoundOneUnit(self, direction):
         i1 = self.whichTrackHasPoint(self.rect().left(), self.rect().bottom())
         
-        jPos = self.tracks[i1].graphics.getCursorIndexY(self.rect().bottom()) - 1
-        jPos2 = self.tracks[i1].graphics.getMovedIndexY(jPos, direction)
-        y = self.tracks[i1].graphics.convertIndexToPositionY(jPos2 + 1)
+        jPos = self.tracks[i1].getCursorIndexY(self.rect().bottom()) - 1
+        jPos2 = self.tracks[i1].getMovedIndexY(jPos, direction)
+        y = self.tracks[i1].convertIndexToPositionY(jPos2 + 1)
         
         r1 = self.rect()
         x1 = r1.left()
@@ -126,9 +126,9 @@ class SelectionRectangle(QtGui.QGraphicsRectItem):
     def moveLeftBoundOneUnit(self, direction):
         i1 = self.whichTrackHasPoint(self.rect().left(), self.rect().top())
         
-        iPos = self.tracks[i1].graphics.getCursorIndexX(self.rect().left())
-        iPos2 = self.tracks[i1].graphics.getMovedIndexX(iPos, direction)
-        x = self.tracks[i1].graphics.convertIndexToPositionX(iPos2)
+        iPos = self.tracks[i1].getCursorIndexX(self.rect().left())
+        iPos2 = self.tracks[i1].getMovedIndexX(iPos, direction)
+        x = self.tracks[i1].convertIndexToPositionX(iPos2)
         
         r1 = self.rect()
         x1 = r1.left()
@@ -140,9 +140,9 @@ class SelectionRectangle(QtGui.QGraphicsRectItem):
     def moveRightBoundOneUnit(self, direction):
         i1 = self.whichTrackHasPoint(self.rect().right(), self.rect().top())
         
-        iPos = self.tracks[i1].graphics.getCursorIndexX(self.rect().right()) - 1
-        iPos2 = self.tracks[i1].graphics.getMovedIndexX(iPos, direction)
-        x = self.tracks[i1].graphics.convertIndexToPositionX(iPos2 + 1)
+        iPos = self.tracks[i1].getCursorIndexX(self.rect().right()) - 1
+        iPos2 = self.tracks[i1].getMovedIndexX(iPos, direction)
+        x = self.tracks[i1].convertIndexToPositionX(iPos2 + 1)
         
         r1 = self.rect()
         x1 = r1.left()
@@ -153,17 +153,17 @@ class SelectionRectangle(QtGui.QGraphicsRectItem):
 
     def getTopIndex(self):
         i1 = self.whichTrackHasPoint(self.rect().left(), self.rect().top())
-        return self.tracks[i1].graphics.getCursorIndexY(self.rect().top())
+        return self.tracks[i1].getCursorIndexY(self.rect().top())
 
     def getBottomIndex(self):
         i1 = self.whichTrackHasPoint(self.rect().left(), self.rect().bottom())
-        return self.tracks[i1].graphics.getCursorIndexY(self.rect().bottom()) - 1
+        return self.tracks[i1].getCursorIndexY(self.rect().bottom()) - 1
         
     def getLeftIndex(self):
         i1 = self.whichTrackHasPoint(self.rect().left(), self.rect().top())
-        return self.tracks[i1].graphics.getCursorIndexY(self.rect().left())
+        return self.tracks[i1].getCursorIndexY(self.rect().left())
         
     def getRightIndex(self):
         i1 = self.whichTrackHasPoint(self.rect().right(), self.rect().top())
-        return self.tracks[i1].graphics.getCursorIndexY(self.rect().right()) - 1
+        return self.tracks[i1].getCursorIndexY(self.rect().right()) - 1
 
