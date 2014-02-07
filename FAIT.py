@@ -11,6 +11,7 @@ import Tracks
 import MidiPlayer
 import SelectionRectangle
 import Cursor
+import GenerateData
 
 import fluidsynth
 
@@ -207,6 +208,8 @@ class TablatureWindow(QtGui.QGraphicsView):
 #        self.visualizeBoundaries()
         
         self.setTempo(140)
+        
+        self.generateData()
 
         
     def initializeTracks(self):
@@ -754,6 +757,11 @@ class TablatureWindow(QtGui.QGraphicsView):
         # now that tracks are arranged, load track data
         for i in range(0, len(self.tracks)):
             self.tracks[i].loadFromString(dataStrings[i])
+            
+            
+    def generateData(self):
+        GenerateData.GenerateData(self)
+        self.cursorItem.updateHighlighting()
 
 def main():
     

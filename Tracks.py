@@ -107,7 +107,7 @@ class Track:
             # start from lowest string and count upward
             tuningNumbers = [40, 45, 50, 55, 59, 64]
             for i in range(6, self.numYGrid):
-                tuningNumbers.append(64 + 5*i)
+                tuningNumbers.append(64 + 5*(i-6+1))
                 
         self.stringTuning = tuningNumbers
         
@@ -303,7 +303,7 @@ class Track:
         y2 = y1 + 10
         
         for i in range(0, numTickMarks):
-            x1 = self.convertIndexToPositionX((i-1)*4)
+            x1 = self.convertIndexToPositionX((i-1)*4 + 0.5)
             x2 = x1
             tickMarkItem = QtGui.QGraphicsLineItem(x1, y1, x2, y2)
             tickMarkItem.setPen(QtCore.Qt.gray)

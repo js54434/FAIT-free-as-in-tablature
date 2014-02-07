@@ -131,7 +131,6 @@ class PlayNote(threading.Thread):
         
     def run(self):
         self.startTime = time.time()
-        print('sameNote = ' + str(self.sameNote))
         if self.sameNote == 'True':
             self.fs.noteoff(0, self.pitch)
         self.fs.noteon(0, self.pitch, self.volume)
