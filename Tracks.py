@@ -770,7 +770,7 @@ class Track:
         data = ast.literal_eval(st)
         for i in range(0, len(data)):
             x = data[i]
-            self.drawNumber(x[0], x[1], x[2])        
+            self.addToTab(x[0], x[1], x[2])        
 
         
         

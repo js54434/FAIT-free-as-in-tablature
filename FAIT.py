@@ -32,14 +32,17 @@ class MainWindow(QtGui.QMainWindow):
         self.statusBar()
         
         # add TablatureWindow
-        self.tabWidget = QtGui.QTabWidget()
-        self.setCentralWidget(self.tabWidget)
+#        self.tabWidget = QtGui.QTabWidget()
+        self.stackedWidget = QtGui.QStackedWidget()
+#        self.setCentralWidget(self.tabWidget)
+        self.setCentralWidget(self.stackedWidget)
         self.setWindowTitle('FAIT Tablature Editor')    
 
-        self.startNewTablature()
-        self.tabWidget.addTab(self.tablatureWindow, 'Untitled')
+        self.tablatureWindow = TablatureWindow(self)
+#        self.tabWidget.addTab(self.tablatureWindow, 'Untitled')
+        self.stackedWidget.addWidget(self.tablatureWindow)
+        self.stackedWidget.setCurrentWidget(self.tablatureWindow)
         self.tablatureWindow.setFocus()
-        
         
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
@@ -98,8 +101,15 @@ class MainWindow(QtGui.QMainWindow):
         self.playButton = QtGui.QPushButton(icon, "")
         self.playButton.setIconSize(QtCore.QSize(110, 110))
         self.playButton.setParent(self)
-        self.playButton.setGeometry(40, 40, 100, 100)
-        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), self.tablatureWindow.togglePlayback)
+#        point = self.tablatureWindow.mapFromScene(0, 0)
+#        self.playButton.setGeometry(point.x(), point.y(), 100, 100)
+
+        print('y = ' + str(self.tablatureWindow.y()))
+        self.playButton.setGeometry(self.tablatureWindow.x(), self.tablatureWindow.y(), 100, 100)
+#        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
+#            self.tablatureWindow.togglePlayback)
+
+        self.connectWidgets()
 
         self.positionWindow()       # center and almost maximize window
         
@@ -125,7 +135,7 @@ class MainWindow(QtGui.QMainWindow):
             with f:
                 f.write(self.tablatureWindow.getSaveFileData())                
                 self.prev_saveFilename = fname 
-                self.tabWidget.setTabText(0, fname)
+#                self.tabWidget.setTabText(0, fname)
                 
     def saveAsPreviousFilename(self):
         if self.prev_saveFilename == '':            # if this is a new file and hasn't been saved yet
@@ -147,17 +157,38 @@ class MainWindow(QtGui.QMainWindow):
             f = open(fname, 'r')
             
             with f:
+                self.tablatureWindow.close()
+#                self.tabWidget.removeTab(0)
+                self.disconnectWidgets()
+                
                 self.tablatureWindow = TablatureWindow(self, loadFile=f)
-                self.tabWidget.removeTab(0)
-                self.tabWidget.addTab(self.tablatureWindow, fname)
+#                self.tabWidget.addTab(self.tablatureWindow, fname)
+                self.stackedWidget.addWidget(self.tablatureWindow)
+                self.stackedWidget.setCurrentWidget(self.tablatureWindow)
                 self.tablatureWindow.setFocus()
+                self.connectWidgets()                
 
+    # play with ctrl-N
     def startNewTablature(*args, **kwargs):
         self = args[0]
+#        self.tabWidget.removeTab(0)
+        self.tablatureWindow.close()
+        self.disconnectWidgets()        
+
         self.tablatureWindow = TablatureWindow(self)
-        self.tabWidget.removeTab(0)
-        self.tabWidget.addTab(self.tablatureWindow, 'Untitled')
+#        self.tabWidget.addTab(self.tablatureWindow, 'Untitled')
+        self.stackedWidget.addWidget(self.tablatureWindow)
+        self.stackedWidget.setCurrentWidget(self.tablatureWindow)
         self.tablatureWindow.setFocus()
+        self.connectWidgets()        
+            
+    def disconnectWidgets(self):
+        QtCore.QObject.disconnect(self.playButton, QtCore.SIGNAL("released()"), 
+            self.tablatureWindow.togglePlayback)
+            
+    def connectWidgets(self):
+        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
+            self.tablatureWindow.togglePlayback)
         
     def cutSelection(self):
         self.tablatureWindow.cutSelection()
