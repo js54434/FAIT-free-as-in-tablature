@@ -27,19 +27,16 @@ class MainWindow(QtGui.QMainWindow):
         self.initUI()
         
     def initUI(self):
-        
         # menus and statusbar
         self.statusBar()
         
         # add TablatureWindow
-#        self.tabWidget = QtGui.QTabWidget()
         self.stackedWidget = QtGui.QStackedWidget()
-#        self.setCentralWidget(self.tabWidget)
         self.setCentralWidget(self.stackedWidget)
         self.setWindowTitle('FAIT Tablature Editor')    
 
         self.tablatureWindow = TablatureWindow(self)
-#        self.tabWidget.addTab(self.tablatureWindow, 'Untitled')
+        self.setWindowTitle('untitled')
         self.stackedWidget.addWidget(self.tablatureWindow)
         self.stackedWidget.setCurrentWidget(self.tablatureWindow)
         self.tablatureWindow.setFocus()
@@ -68,10 +65,21 @@ class MainWindow(QtGui.QMainWindow):
         saveFile.setStatusTip('Save file')
         saveFile.triggered.connect(self.saveAsPreviousFilename)
         
+        runScript = QtGui.QAction('Run Script...', self)
+        runScript.setStatusTip('Run script')
+        runScript.triggered.connect(self.runScript)
+        
+        quitApp = QtGui.QAction('Quit', self)
+        quitApp.setShortcut(QtGui.QKeySequence.Quit)
+        quitApp.setStatusTip('Quit')
+        quitApp.triggered.connect(self.quitApp)
+        
         fileMenu.addAction(newFile)
         fileMenu.addAction(openFile)
         fileMenu.addAction(saveFile)
         fileMenu.addAction(saveAsFile)
+        fileMenu.addAction(runScript)
+        fileMenu.addAction(quitApp)
 
         cutSelection = QtGui.QAction('Cut', self)
         cutSelection.setShortcut(QtGui.QKeySequence.Cut)
@@ -101,13 +109,8 @@ class MainWindow(QtGui.QMainWindow):
         self.playButton = QtGui.QPushButton(icon, "")
         self.playButton.setIconSize(QtCore.QSize(110, 110))
         self.playButton.setParent(self)
-#        point = self.tablatureWindow.mapFromScene(0, 0)
-#        self.playButton.setGeometry(point.x(), point.y(), 100, 100)
 
-        print('y = ' + str(self.tablatureWindow.y()))
         self.playButton.setGeometry(self.tablatureWindow.x(), self.tablatureWindow.y(), 100, 100)
-#        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
-#            self.tablatureWindow.togglePlayback)
 
         self.connectWidgets()
 
@@ -135,6 +138,7 @@ class MainWindow(QtGui.QMainWindow):
             with f:
                 f.write(self.tablatureWindow.getSaveFileData())                
                 self.prev_saveFilename = fname 
+                self.setWindowTitle(fname)
 #                self.tabWidget.setTabText(0, fname)
                 
     def saveAsPreviousFilename(self):
@@ -158,29 +162,42 @@ class MainWindow(QtGui.QMainWindow):
             
             with f:
                 self.tablatureWindow.close()
-#                self.tabWidget.removeTab(0)
                 self.disconnectWidgets()
                 
                 self.tablatureWindow = TablatureWindow(self, loadFile=f)
-#                self.tabWidget.addTab(self.tablatureWindow, fname)
                 self.stackedWidget.addWidget(self.tablatureWindow)
                 self.stackedWidget.setCurrentWidget(self.tablatureWindow)
+                self.setWindowTitle(fname)
                 self.tablatureWindow.setFocus()
                 self.connectWidgets()                
 
     # play with ctrl-N
     def startNewTablature(*args, **kwargs):
         self = args[0]
-#        self.tabWidget.removeTab(0)
         self.tablatureWindow.close()
         self.disconnectWidgets()        
 
         self.tablatureWindow = TablatureWindow(self)
-#        self.tabWidget.addTab(self.tablatureWindow, 'Untitled')
         self.stackedWidget.addWidget(self.tablatureWindow)
         self.stackedWidget.setCurrentWidget(self.tablatureWindow)
         self.tablatureWindow.setFocus()
         self.connectWidgets()        
+        
+    def runScript(self):
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', 
+                '~/Documents/coding/Tab Program/')
+        if fname != '':
+            f = open(fname, 'r')
+            
+            with f:
+                self.tablatureWindow.runScript(f)
+                
+    def quitApp(self):
+        # stop playback before quitting so stuff doesn't hang
+        self.tablatureWindow.stopPlayback()
+        time.sleep(0.1)
+        
+        self.close()
             
     def disconnectWidgets(self):
         QtCore.QObject.disconnect(self.playButton, QtCore.SIGNAL("released()"), 
@@ -244,13 +261,11 @@ class TablatureWindow(QtGui.QGraphicsView):
 
         
     def initializeTracks(self):
-#        self.prev_iCursor = 0
-#        self.prev_jCursor = 0
         self.prev_trackFocusNum = 0
         self.trackFocusNum = 0       # to begin with, focus is on track 0
         
-        self.xMar = 50          # margins from top and left side of window to topmost track
-        self.yMar = 50
+        self.xMar = 100          # margins from top and left side of window to topmost track
+        self.yMar = 100
         self.trackMar = 50      # margin between tracks
         
         self.tracks[0].setX0(self.xMar)
@@ -261,6 +276,9 @@ class TablatureWindow(QtGui.QGraphicsView):
                 self.tracks[i].setY0(self.tracks[i-1].y0 + \
                             self.tracks[i-1].height + self.trackMar)
             self.tracks[i].drawStuff()
+#            if self.tracks[i].hasVocals == True:
+#                print('hasVocals == True for track ' + str(i))
+#                self.tracks[i].setLyrics('test') 
 
         # calculate window size
         self.windowSizeX = self.tracks[0].x0 + \
@@ -361,7 +379,6 @@ class TablatureWindow(QtGui.QGraphicsView):
         # enter moves cursor down
         if key == QtCore.Qt.Key_Return:
             self.cursorItem.moveDown()
-#            self.updateCursorGraphics()
             
         # check for number input
         if key in self.numberKeys:
@@ -418,14 +435,12 @@ class TablatureWindow(QtGui.QGraphicsView):
                 
     
     def mousePressEvent(self, e):
-#        if self.cursorItem.isInLyrics == True:
-#            return
-
         self.unSelect()
         
         scenePoint = self.mapToScene(e.x(), e.y())
         xPos = scenePoint.x()
         yPos = scenePoint.y()
+        print('scenePoint: ' + str([xPos, yPos]))
         self.mousePressedX = xPos
         self.mousePressedY = yPos
                 
@@ -444,7 +459,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             self.cursorItem.moveToPosition(i1, xPos, yPos)
         elif self.tracks[i1].isPositionOnLyrics(xPos, yPos) == True:
             if self.cursorItem.isInLyrics == False:
-                self.cursorItem.enterLyrics()
+                self.cursorItem.enterLyrics(xPos, yPos)
             # if mouse clicked on lyrics, then default to standard behavior, 
             # which is to edit the lyrics
             QtGui.QGraphicsView.mousePressEvent(self, e)
@@ -789,6 +804,8 @@ class TablatureWindow(QtGui.QGraphicsView):
         for i in range(0, len(self.tracks)):
             self.tracks[i].loadFromString(dataStrings[i])
             
+    def runScript(self, file):
+        GenerateData.GenerateData(self, file)
             
     def generateData(self):
         GenerateData.GenerateData(self)

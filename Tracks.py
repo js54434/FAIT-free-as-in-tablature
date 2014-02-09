@@ -34,6 +34,7 @@ class Track:
         self.sectionLineItems = []
         self.tickMarkItems = []
         self.tuningTextItems = []
+        self.lyricsItems = []
                                     
         self.numberZValue = 1
         self.tuningZValue = 0
@@ -50,8 +51,6 @@ class Track:
         self.selectionCoordinates = [0, 0, 0, 0]
         self.copiedSelectionCoordinates = [0, 0, 0, 0]
 
-        
-        
         if 'hasVocals' in kwargs:
             if kwargs['hasVocals'] == 'True':
                 self.hasVocals = True
@@ -59,7 +58,6 @@ class Track:
                 self.hasVocals = False
         else:
             self.hasVocals = False
-        # set default lyrics
         
         if 'numXGrid' in kwargs:
             self.setNumXGrid(int(kwargs['numXGrid']))
@@ -83,15 +81,8 @@ class Track:
         else:
             self.setTuning('standard')
 
-        
-
         self.calculateBoundsAndMargins()
 
-        if 'hasVocals' in kwargs:
-            self.setLyrics("Hello world")
-
-        
-        # self.drawStuff()
         
     # return pitch in midi integer notation
     def convertNumberToPitch(self, jPos, pitchNum):
@@ -130,7 +121,8 @@ class Track:
         self.drawStringItems()       
         self.drawBarLineItems()
         self.drawTickMarkItems()
-        self.drawSectionLineItems() 
+        self.drawSectionLineItems()
+        self.drawLyricsBoundary()
                         
     def addToTab(self, iPos, jPos, val):
         # first check if we have an asterisk
@@ -754,13 +746,38 @@ class Track:
             
     def setLyrics(self, text):
         self.lyricsItem = QtGui.QGraphicsTextItem(text)
-        x = self.left() + self.lyricsItem.boundingRect().width() / 2
-        y = self.lyricsBottom() + self.lyricsItem.boundingRect().height() / 2
+        x = self.left()
+        y = self.lyricsTop() + self.lyricsItem.boundingRect().height() / 2
+        
         self.lyricsItem.setPos(x, y)
+    
+        x1 = self.left()
+        x2 = self.right()
+        y1 = self.lyricsTop()
+        y2 = self.lyricsBottom()
+#        self.lyricsItem.setRect(QtCore.QRect(x1, y1, x2, y2))
+
+#        self.lyricsItem.setGeometry(x, y, 
 #        self.lyricsItem.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         self.lyricsItem.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.lyricsItem.setZValue(50)
         self.scene.addItem(self.lyricsItem)
+        
+    def drawLyricsBoundary(self):
+        if self.hasVocals == True:
+            x1 = self.left()
+            x2 = self.right()
+            y1 = self.lyricsTop()
+            y2 = self.lyricsBottom()
+            w = x2 - x1
+            h = y2 - y1
+            self.lyricsBoundary = QtGui.QGraphicsRectItem(x1, y1, w, h)
+            self.lyricsBoundary.setPen(QtCore.Qt.black)
+            self.lyricsBoundary.setBrush(QtCore.Qt.transparent)
+            self.scene.addItem(self.lyricsBoundary)
+            
+    def getLyricsAtPosition(self, xPos, yPos):
+        
         
     def toString(self):
         data = [[x[0],x[1],x[4]] for x in self.numberItems]

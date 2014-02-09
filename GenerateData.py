@@ -7,9 +7,19 @@ import Tracks
 
 
 class GenerateData:
-    def __init__(self, parent):
-        self._parent = parent
+    def __init__(*args):
+        self = args[0]
+        self._parent = args[1]
         self.tracks = self._parent.tracks
+        
+        if len(args) == 3:
+            file = args[2]
+            self.runScript(file)
+        else:
+#            self.doStuff()
+            pass
+            
+    def doStuff(self):
         
         E = self.EChord()
         A = self.AChord()
@@ -112,3 +122,14 @@ class GenerateData:
         for i in range(0, len(notes)):
             x = notes[i]
             self.tracks[0].addToTab(x[0], x[1], x[2])
+            
+    def runScript(self, file):
+        print('runScript')
+        # go through line by line and interpret stuff
+        
+        # for testing, just print everything to screen
+#        st = file.readline()
+#        while st != '':
+#            print(st)
+#            st = file.readline()
+        

@@ -49,7 +49,7 @@ class Cursor(QtGui.QGraphicsRectItem):
         jPos = self.tracks[trackNum].getCursorIndexY(yPos)
         self.moveToIndex(trackNum, iPos, jPos)
         
-    def enterLyrics(self):
+    def enterLyrics(self, *args):
         print('enter')
         self.isInLyrics = True
 
@@ -57,9 +57,24 @@ class Cursor(QtGui.QGraphicsRectItem):
         self.setPen(QtCore.Qt.transparent)
         self.setBrush(QtCore.Qt.transparent)
         
-        self.timer.stop()
+        self.timer.stop()       # stop blinking timer
                 
         self._parent.scrollIfNecessary()
+
+        if len(args) > 0:
+            xPos = args[0]
+            yPos = args[1]
+            
+            i1 = self._parent.whichTrackHasPoint(xPos, yPos)
+
+            # check if any lyrics are here
+            lyrics = self.tracks[i1].getLyricsAtPosition(xPos, yPos)
+            if len(lyrics) > 0:
+                print('lyrics here')
+                lyrics[0].setFocus()
+            elif len(lyrics) == 0:
+                lyrics2 = self.tracks[i1].createLyricsAtPosition(xPos, yPos)
+                lyrics2.setFocus()
 
     def leaveLyrics(self):
         print('leave')
