@@ -44,6 +44,7 @@ class MainWindow(QtGui.QMainWindow):
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
         editMenu = menubar.addMenu('&Edit')
+        trackMenu = menubar.addMenu('&Track')
         
         newFile = QtGui.QAction(QtGui.QIcon('new.png'), 'New Tab', self)
         newFile.setShortcut(QtGui.QKeySequence.New)
@@ -99,6 +100,13 @@ class MainWindow(QtGui.QMainWindow):
         editMenu.addAction(cutSelection)
         editMenu.addAction(copySelection)
         editMenu.addAction(pasteSelection)
+        
+        changeInstrument = QtGui.QAction('change instrument', self)
+        changeInstrument.setShortcut('Ctrl+I')
+        changeInstrument.setStatusTip('change instrument')
+        changeInstrument.triggered.connect(self.changeInstrument)
+        
+        trackMenu.addAction(changeInstrument)
         
 #        icon = QtGui.QIcon("drawnStartButton.png")
 #        icon = QtGui.QIcon("startButton-AsIs.png")
@@ -168,8 +176,8 @@ class MainWindow(QtGui.QMainWindow):
                 self.stackedWidget.addWidget(self.tablatureWindow)
                 self.stackedWidget.setCurrentWidget(self.tablatureWindow)
                 self.setWindowTitle(fname)
-                self.tablatureWindow.setFocus()
                 self.connectWidgets()                
+                self.tablatureWindow.setFocus()
 
     # play with ctrl-N
     def startNewTablature(*args, **kwargs):
@@ -180,8 +188,8 @@ class MainWindow(QtGui.QMainWindow):
         self.tablatureWindow = TablatureWindow(self)
         self.stackedWidget.addWidget(self.tablatureWindow)
         self.stackedWidget.setCurrentWidget(self.tablatureWindow)
-        self.tablatureWindow.setFocus()
         self.connectWidgets()        
+        self.tablatureWindow.setFocus()
         
     def runScript(self):
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', 
@@ -215,7 +223,36 @@ class MainWindow(QtGui.QMainWindow):
         
     def pasteSelection(self):
         self.tablatureWindow.pasteSelection()
+        
+    def changeInstrument(self):
+        numStr, ok = QtGui.QInputDialog.getText(self, '', 'Type instrument number (1-128):')
 
+        if ok:
+            if self.is_number(numStr):
+                if int(numStr) >= 1:
+                    if int(numStr) <= 128:
+                        self.tablatureWindow.changeInstrument(int(numStr))
+                    else:
+                        self.showError('number too large')
+                else:
+                    self.showError('number must be 1 or greater')
+            else:
+                self.showError('instrument number must be an integer 0 or greater')
+
+    def showError(self, errorStr):
+        QtGui.QMessageBox.warning(self, "Error:", errorStr)
+
+
+    def is_number(self, s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+#        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', 
+#                '~/Documents/coding/Tab Program/')
+
+            
 
 class TablatureWindow(QtGui.QGraphicsView):    
     def __init__(*args, **kwargs):
@@ -255,6 +292,10 @@ class TablatureWindow(QtGui.QGraphicsView):
         
 #        self.visualizeBoundaries()
         
+        # initialize tracks to guitar
+        for i in range(0, len(self.tracks)):
+            self.tracks[i].changeInstrument(27)
+        
         self.setTempo(140)
         
         self.generateData()
@@ -276,9 +317,6 @@ class TablatureWindow(QtGui.QGraphicsView):
                 self.tracks[i].setY0(self.tracks[i-1].y0 + \
                             self.tracks[i-1].height + self.trackMar)
             self.tracks[i].drawStuff()
-#            if self.tracks[i].hasVocals == True:
-#                print('hasVocals == True for track ' + str(i))
-#                self.tracks[i].setLyrics('test') 
 
         # calculate window size
         self.windowSizeX = self.tracks[0].x0 + \
@@ -391,6 +429,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                 self.cursorItem.addToTab(num)
                             
                 pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num)
+                self.midiPlayer.changeInstrument(i, self.tracks[i].getLatestInstrument())
                 self.midiPlayer.playNote(self, i, pitch, duration=0.3)
             else:
                 # if there is a number, check if could be the first digit of a two-digit number
@@ -402,12 +441,14 @@ class TablatureWindow(QtGui.QGraphicsView):
                     self.cursorItem.addToTab(num2)
                     
                     pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num2)
+                    self.midiPlayer.changeInstrument(i, self.tracks[i].getLatestInstrument())
                     self.midiPlayer.playNote(self, i, pitch, duration=0.3)
                 else:
                     # otherwise, just add new number
                     self.cursorItem.addToTab(num)
                     
                     pitch = self.tracks[i].convertNumberToPitch(self.cursorItem.jCursor, num)
+                    self.midiPlayer.changeInstrument(i, self.tracks[i].getLatestInstrument())
                     self.midiPlayer.playNote(self, i, pitch, duration=0.3)      
                     
         # asterisk (*) stops note
@@ -760,12 +801,14 @@ class TablatureWindow(QtGui.QGraphicsView):
             st = st + 'Raw track data:\n'
             # now dump data, separated by '\n' delimiter
             st = st + self.tracks[i].toString() + '\n'
+            st = st + self.tracks[i].instrumentsToString() + '\n'
             st = st + '\n'
             st = st + '\n'
         return st
         
     def loadTracks(self, file):
         dataStrings = []
+        instStrings = []
         
         # go through file line by line and do appropriate actions
         file.readline()                     # line 1: "number of tracks"
@@ -785,12 +828,15 @@ class TablatureWindow(QtGui.QGraphicsView):
                 file.readline()                     
                 st = file.readline()                
                 dataStrings.append(st)              # get raw data
+                st = file.readline()
+                instStrings.append(st)              # get instrument data
                 
                 file.readline()                     # blank
                 file.readline()                     # blank
                 
                 self.tracks.append(Tracks.Track(self, numXGrid=str(numXGrid1), 
                     numYGrid=str(numYGrid1), hasVocals=hasVocals1))
+                                
         
         # draw tracks' grids, tunings, and cursor, and arrange tracks
         self.initializeTracks()
@@ -803,6 +849,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         # now that tracks are arranged, load track data
         for i in range(0, len(self.tracks)):
             self.tracks[i].loadFromString(dataStrings[i])
+            self.tracks[i].loadInstrumentsFromString(instStrings[i])
             
     def runScript(self, file):
         GenerateData.GenerateData(self, file)
@@ -810,6 +857,13 @@ class TablatureWindow(QtGui.QGraphicsView):
     def generateData(self):
         GenerateData.GenerateData(self)
         self.cursorItem.updateHighlighting()
+        
+    def changeInstrument(self, numInst):
+        print('change instrument, ' + str(numInst))
+        # show dialog
+        
+        self.cursorItem.changeInstrument(numInst)
+        
 
 def main():
     

@@ -19,10 +19,11 @@ class MidiPlayer:
             os.system("jack_connect fluidsynth:l_00 system:playback_1")
             os.system("jack_connect fluidsynth:r_00 system:playback_2")
 
-        sfid = self.fs.sfload("FluidR3_GM.sf2")
-#        sfid = self.fs.sfload("/usr/share/sounds/sf2/Scc1t2.sf2")
+        self.sfid = self.fs.sfload("FluidR3_GM.sf2")
+#        self.sfid = self.fs.sfload("/usr/share/sounds/sf2/Scc1t2.sf2")
         
-        self.fs.program_select(0, sfid, 0, 0)
+        # track number, sfid, bank number, instrument number
+        self.fs.program_select(0, self.sfid, 0, 0)
         
         self.setTempo(120)
         
@@ -34,6 +35,9 @@ class MidiPlayer:
         worker.start()
         
         return worker
+        
+    def changeInstrument(self, trackNum, instNum):
+        self.fs.program_select(trackNum, self.sfid, 0, instNum-1)
         
 #    def stopEverything(self):
 #        self.fs.system_reset()      # stops everything  
@@ -48,6 +52,11 @@ class Playback:
         self.tempo = self.midiPlayer.tempo
 
         self.notesPlaying = []        
+        
+        # set initial instruments
+        for i in range(0, len(self.tracks)):
+            inst = self.tracks[i].getLatestInstrument()
+            self.midiPlayer.changeInstrument(i, inst)
 
         self.timer = QtCore.QTimer()
         QtCore.QObject.connect(
@@ -59,6 +68,12 @@ class Playback:
         self.timer.start(dt)
         
     def playOneStep(self):
+        # first make any necessary instrument changes
+        for i in range(0, len(self.tracks)):
+            inst = self.tracks[i].getInstrumentAtCurrentIndex()
+            if inst >= 0:
+                self.midiPlayer.changeInstrument(i, inst)
+    
         # find all notes on all tracks at current cursor position
         iPos = self.cursorItem.iCursor
         for i in range(0, len(self.tracks)):
@@ -132,17 +147,17 @@ class PlayNote(threading.Thread):
     def run(self):
         self.startTime = time.time()
         if self.sameNote == 'True':
-            self.fs.noteoff(0, self.pitch)
-        self.fs.noteon(0, self.pitch, self.volume)
+            self.fs.noteoff(self.trackNum, self.pitch)
+        self.fs.noteon(self.trackNum, self.pitch, self.volume)
 
-        checkTime = 0.050
+        checkTime = 0.050   # ms
 
         # if self.duration was set to -1, play indefinitely
         if self.duration == -1:
             while not self.event.is_set():
-                self.event.wait(checkTime)        # wait 100 ms
+                self.event.wait(checkTime)        
             if self.sameNote == 'False':
-                self.fs.noteoff(0, self.pitch)
+                self.fs.noteoff(self.trackNum, self.pitch)
         
         elif self.duration > 0:
             # wait and check roughly every 100 ms to see if something stops it by calling self.event.set()
@@ -154,7 +169,7 @@ class PlayNote(threading.Thread):
                 self.event.wait(dt)
 
             if self.sameNote == 'False':
-                self.fs.noteoff(0, self.pitch)
+                self.fs.noteoff(self.trackNum, self.pitch)
         
         else:
             print('Warning: note duration of ' + str(self.duration) + ' is not a valid number')

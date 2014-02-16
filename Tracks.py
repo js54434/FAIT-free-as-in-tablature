@@ -23,6 +23,7 @@ class Track:
 
         self.numberFontOdd = QtGui.QFont('Helvetica', 11)
         self.numberFontEven = QtGui.QFont('Helvetica', 11)
+        self.numberFont = self.numberFontOdd
 
         self.numberItems = []       # list of QGraphicsItems corresponding
                                     # to displayed text of numbers
@@ -35,6 +36,7 @@ class Track:
         self.tickMarkItems = []
         self.tuningTextItems = []
         self.lyricsItems = []
+        self.instrumentChanges = []
                                     
         self.numberZValue = 1
         self.tuningZValue = 0
@@ -233,6 +235,65 @@ class Track:
             # remove from scene
             self.scene.removeItem(itemList[2])  # textItem
             self.scene.removeItem(itemList[3])  # rectItem
+            
+    def changeInstrument(self, *args):
+        if len(args) == 1:
+            iPos = self._parent.cursorItem.iCursor
+            numInst = args[0]
+        elif len(args) == 2:
+            iPos = args[0]
+            numInst = args[1]
+        else:
+            print('changeInstrument is taking wrong number of arguments: ' + str(len(args)))
+            
+        jPos = self.numYGrid
+        
+        # check if instrument was already set at this position, and delete it before
+        # adding new instrument
+        insts = [x for x in self.instrumentChanges if x[0] == iPos]
+        if len(insts) > 0:    
+            self.scene.removeItem(insts[0][2])
+            self.scene.removeItem(insts[0][3])
+            self.instrumentChanges.remove(insts[0])
+        
+        text = str(numInst)
+        instrumentItem = QtGui.QGraphicsSimpleTextItem(text)
+        instrumentItem.setZValue(self.numberZValue)
+        instrumentItem.setBrush(QtCore.Qt.black)
+        instrumentItem.setFont(self.numberFont)
+        self.scene.addItem(instrumentItem)
+        
+        # little background rectangle
+        rectItem = QtGui.QGraphicsPolygonItem()
+        rectItem.setZValue(self.numberBackgroundZValue)
+        rectItem.setBrush(QtCore.Qt.white)
+        rectItem.setPen(QtCore.Qt.transparent)
+        self.scene.addItem(rectItem)
+
+        self.setTextItemPosition([iPos, jPos, instrumentItem, rectItem, numInst])
+        self.instrumentChanges.append([iPos, numInst, instrumentItem, rectItem])
+        
+        
+    def getLatestInstrument(self):
+        iPos = self._parent.cursorItem.iCursor
+        
+        # find latest instrument change
+        indices = [x[0] for x in self.instrumentChanges if x[0] <= iPos]
+        if len(indices) > 0:
+            instNum = [x for x in self.instrumentChanges if x[0] == max(indices)][0][1]
+            return instNum
+        else:   # if no previous instruments, produce warning and set to piano (0)
+            print('no previous instruments; setting to piano')
+            instNum = 0
+            return instNum
+            
+    def getInstrumentAtCurrentIndex(self):
+        iPos = self._parent.cursorItem.iCursor
+        insts = [x for x in self.instrumentChanges if x[0] == iPos]
+        if len(insts) > 0:
+            return insts[0][1]
+        else:
+            return -1
                             
     def getGraphicsItems(self, iPos, jPos):
         possibleTuples = [x for x in self.numberItems \
@@ -294,8 +355,8 @@ class Track:
         y1 = self.convertIndexToPositionY(self.numYGrid)
         y2 = y1 + 10
         
-        for i in range(0, numTickMarks):
-            x1 = self.convertIndexToPositionX((i-1)*4 + 0.5)
+        for i in range(0, numTickMarks-1):
+            x1 = self.convertIndexToPositionX(i*4 + 0.5)
             x2 = x1
             tickMarkItem = QtGui.QGraphicsLineItem(x1, y1, x2, y2)
             tickMarkItem.setPen(QtCore.Qt.gray)
@@ -776,7 +837,7 @@ class Track:
             self.lyricsBoundary.setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.lyricsBoundary)
             
-    def getLyricsAtPosition(self, xPos, yPos):
+#    def getLyricsAtPosition(self, xPos, yPos):
         
         
     def toString(self):
@@ -789,7 +850,15 @@ class Track:
             x = data[i]
             self.addToTab(x[0], x[1], x[2])        
 
+    def instrumentsToString(self):
+        data = [[x[0], x[1]] for x in self.instrumentChanges]
+        return str(data)
         
+    def loadInstrumentsFromString(self, st):
+        data = ast.literal_eval(st)
+        for i in range(0, len(data)):
+            x = data[i]
+            self.changeInstrument(x[0], x[1])
         
         
         

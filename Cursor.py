@@ -172,4 +172,7 @@ class Cursor(QtGui.QGraphicsRectItem):
     def removeFromTab(self):
         self.tracks[self.trackNum].removeFromTab(self.iCursor, self.jCursor)
         
+    def changeInstrument(self, numInst):
+        self.tracks[self.trackNum].changeInstrument(numInst)
+        
         
