@@ -37,9 +37,10 @@ class Track:
         self.tuningTextItems = []
         self.lyricsItems = []
         self.instrumentChanges = []
+        self.floatingItems = []
                                     
         self.numberZValue = 1
-        self.tuningZValue = 0
+        self.tuningZValue = 50
         self.numberBackgroundZValue = -15
         self.gridZValue = -20
         self.stringZValue = -20
@@ -125,6 +126,7 @@ class Track:
         self.drawTickMarkItems()
         self.drawSectionLineItems()
         self.drawLyricsBoundary()
+        self.addButtons()
                         
     def addToTab(self, iPos, jPos, val):
         # first check if we have an asterisk
@@ -393,7 +395,7 @@ class Track:
             textItem = QtGui.QGraphicsSimpleTextItem(text)
             textItem.setBrush(QtCore.Qt.black)
             textItem.setPen(QtCore.Qt.black)
-            textItem.setZValue(-10)
+            textItem.setZValue(self.tuningZValue)
                
             # set position
             tw = textItem.boundingRect().width()
@@ -404,6 +406,20 @@ class Track:
             textItem.setPos(x11,y11)
             self.scene.addItem(textItem)
             self.tuningTextItems.append([j, textItem])
+            
+    def toggleTrackPlayback(self):
+        print('toggleTrackPlayback')
+            
+    def addButtons(self):
+        # play button
+        self.playButton = QtGui.QPushButton("play")
+        self.playButton.setParent(self._parent._parent)
+        self.playButton.setGeometry(self.left() - 50, self.top(), 20, 20)
+        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
+            self.toggleTrackPlayback)
+        
+        # add everything to self.floatingItems list
+        self.floatingItems = [self.playButton]
                 
     def convertPitchToLetter(self, pitchNum):
         p = pitchNum % 12
@@ -859,6 +875,18 @@ class Track:
         for i in range(0, len(data)):
             x = data[i]
             self.changeInstrument(x[0], x[1])
-        
+            
+    def scrollFloatingItems(self, dx, dy):
+        # buttons and stuff
+        for i in range(0, len(self.floatingItems)):
+            rect = self.floatingItems[i].geometry()
+            self.floatingItems[i].setGeometry(rect.x(), rect.y()+dy, rect.width(), rect.height())
+            
+        # tuning
+        for i in range(0, len(self.tuningTextItems)):
+            item = self.tuningTextItems[i][1]
+            pos = item.scenePos()
+            old_pos = pos
+            item.setPos(pos.x()-dx, pos.y())        
         
         

@@ -36,9 +36,10 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle('FAIT Tablature Editor')    
 
         self.tablatureWindow = TablatureWindow(self)
-        self.setWindowTitle('untitled')
+        self.setWindowTitle('Untitled')
         self.stackedWidget.addWidget(self.tablatureWindow)
         self.stackedWidget.setCurrentWidget(self.tablatureWindow)
+        self.tablatureWindow.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.tablatureWindow.setFocus()
         
         menubar = self.menuBar()
@@ -106,25 +107,45 @@ class MainWindow(QtGui.QMainWindow):
         changeInstrument.setStatusTip('change instrument')
         changeInstrument.triggered.connect(self.changeInstrument)
         
+        changeTempo = QtGui.QAction('change tempo', self)
+        changeTempo.setShortcut('Ctrl+T')
+        changeTempo.setStatusTip('change tempo')
+        changeTempo.triggered.connect(self.changeTempo)
+        
         trackMenu.addAction(changeInstrument)
+        trackMenu.addAction(changeTempo)
         
 #        icon = QtGui.QIcon("drawnStartButton.png")
 #        icon = QtGui.QIcon("startButton-AsIs.png")
 #        icon = QtGui.QIcon("startButton-grainy.png")
         icon = QtGui.QIcon("startButton-sharp.png")
 #        icon = QtGui.QIcon("pauseButton.png")
-        
+                
+#        self.topBar = QtGui.QWidget()
+#        self.topBar.setParent(self)
+#        self.topBar.setAutoFillBackground(True)
+
+#        self.leftBar = QtGui.QWidget()        
+#        self.leftBar.setParent(self)
+#        self.leftBar.setAutoFillBackground(True)
+
         self.playButton = QtGui.QPushButton(icon, "")
         self.playButton.setIconSize(QtCore.QSize(110, 110))
         self.playButton.setParent(self)
-
-        self.playButton.setGeometry(self.tablatureWindow.x(), self.tablatureWindow.y(), 100, 100)
+#        self.tablatureWindow.scene.addWidget(self.playButton)
+        self.playButton.setGeometry(0, 0, 100, 100)
 
         self.connectWidgets()
 
         self.positionWindow()       # center and almost maximize window
         
         self.show()
+        
+#        self.leftBar.setGeometry(0, 0, 100, self.tablatureWindow.viewport().height())
+#        self.topBar.setGeometry(0, 0, self.tablatureWindow.viewport().width(), 100)
+        
+#        self.setMouseTracking(True)
+
         
     def positionWindow(self):
         qr = self.frameGeometry()
@@ -188,6 +209,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tablatureWindow = TablatureWindow(self)
         self.stackedWidget.addWidget(self.tablatureWindow)
         self.stackedWidget.setCurrentWidget(self.tablatureWindow)
+        self.setWindowTitle('Untitled')
         self.connectWidgets()        
         self.tablatureWindow.setFocus()
         
@@ -214,7 +236,12 @@ class MainWindow(QtGui.QMainWindow):
     def connectWidgets(self):
         QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
             self.tablatureWindow.togglePlayback)
-        
+
+    def resizeWidgets(self):
+        print('resizeWidgets()')
+        self.leftBar.setGeometry(0, 0, 100, self.tablatureWindow.viewport().height())
+        self.topBar.setGeometry(0, 0, self.tablatureWindow.viewport().width(), 100)
+                
     def cutSelection(self):
         self.tablatureWindow.cutSelection()
 
@@ -238,6 +265,18 @@ class MainWindow(QtGui.QMainWindow):
                     self.showError('number must be 1 or greater')
             else:
                 self.showError('instrument number must be an integer 0 or greater')
+                
+    def changeTempo(self):
+        numStr, ok = QtGui.QInputDialog.getText(self, '', 'Type tempo in bpm (30-500)')
+        
+        if ok:
+            if self.is_number(numStr):
+                if int(numStr) >= 30 and int(numStr) <= 500:
+                    self.tablatureWindow.setTempo(int(numStr))
+                else:
+                    self.showError('Tempo must be between 30 and 500 bpm.')
+            else:
+                self.showError('Tempo must be a number.')
 
     def showError(self, errorStr):
         QtGui.QMessageBox.warning(self, "Error:", errorStr)
@@ -284,6 +323,7 @@ class TablatureWindow(QtGui.QGraphicsView):
 
         self.initializeCursor()
         self.initializeSelectionRectangles()
+        self.initializePanels()
         
         self.defineKeyGroups()
         
@@ -317,7 +357,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                 self.tracks[i].setY0(self.tracks[i-1].y0 + \
                             self.tracks[i-1].height + self.trackMar)
             self.tracks[i].drawStuff()
-
+    
         # calculate window size
         self.windowSizeX = self.tracks[0].x0 + \
                         self.tracks[0].dx*3 + self.tracks[0].width
@@ -505,7 +545,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             # which is to edit the lyrics
             QtGui.QGraphicsView.mousePressEvent(self, e)
 
-    def mouseMoveEvent(self, e):
+    def mouseMoveEvent(self, e):        
         if e.buttons() == QtCore.Qt.LeftButton:
             scenePoint = self.mapToScene(e.x(), e.y())
             xPos = scenePoint.x()
@@ -526,6 +566,25 @@ class TablatureWindow(QtGui.QGraphicsView):
             
 #    def mouseReleaseEvent(self, e):
 #        pass
+
+    def scrollContentsBy(self, dx, dy):
+        QtGui.QGraphicsView.scrollContentsBy(self, dx, dy)
+        
+        # move button to compensate
+#        rect = self._parent.playButton.geometry()
+#        self._parent.playButton.setGeometry(rect.x()+dx, rect.y(), rect.width(), rect.height())
+    
+        # scroll floating panels
+        rect = self.leftPanel.rect()
+        self.leftPanel.setRect(rect.x()-dx, rect.y(), rect.width(), rect.height())
+        
+        rect = self.topPanel.rect()
+        self.topPanel.setRect(rect.x()-dx, rect.y()-dy, rect.width(), rect.height())
+    
+        # scroll floating items like tuning and play button
+        for i in range(0, len(self.tracks)):
+            self.tracks[i].scrollFloatingItems(dx, dy)
+
                         
     def whichSidesOfSelectionRectangleIsCursorAt(self):
         sides = []
@@ -679,6 +738,8 @@ class TablatureWindow(QtGui.QGraphicsView):
         self.trackRects = []
         self.lyricsRects = []
         self.stringRects = []
+        self.leftBarRect = []
+        self.topBarRect = []
         j = 0
         for i in range(0, len(self.tracks)):
             # track boundaries
@@ -709,6 +770,23 @@ class TablatureWindow(QtGui.QGraphicsView):
             self.stringRects[i].setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.stringRects[i])
             
+            y1 = 0
+            y2 = self.tracks[0].top()
+            x1 = 0
+            x2 = self.tracks[0].right()
+            self.topBarRect = QtGui.QGraphicsRectItem(x1, y1, x2-x1, y2-y1)
+            self.topBarRect.setPen(QtCore.Qt.gray)
+            self.topBarRect.setBrush(QtCore.Qt.transparent)
+            self.scene.addItem(self.topBarRect)
+            
+            y1 = 0
+            y2 = self.tracks[len(self.tracks)-1].bottom()
+            x1 = 0
+            x2 = self.tracks[0].left()
+            self.leftBarRect = QtGui.QGraphicsRectItem(x1, y1, x2-x1, y2-y1)
+            self.leftBarRect.setPen(QtCore.Qt.gray)
+            self.leftBarRect.setBrush(QtCore.Qt.transparent)
+            self.scene.addItem(self.leftBarRect)
                         
     def initializeCursor(self):
         
@@ -740,6 +818,20 @@ class TablatureWindow(QtGui.QGraphicsView):
         self.pastedSelectionRectangle.setBrush(QtCore.Qt.red)
         self.pastedSelectionRectangle.setOpacity(0.25)
         self.scene.addItem(self.pastedSelectionRectangle)
+        
+    def initializePanels(self):
+#        self.tablatureWindow.viewport().height()
+        self.leftPanel = QtGui.QGraphicsRectItem(0, 0, 100, self.windowSizeY)
+        self.leftPanel.setBrush(QtCore.Qt.lightGray)
+        self.leftPanel.setPen(QtCore.Qt.transparent)
+        self.leftPanel.setZValue(40)
+        self.scene.addItem(self.leftPanel)
+        
+        self.topPanel = QtGui.QGraphicsRectItem(0, 0, 2000, 100)
+        self.topPanel.setBrush(QtCore.Qt.lightGray)
+        self.topPanel.setPen(QtCore.Qt.transparent)
+        self.topPanel.setZValue(40)
+        self.scene.addItem(self.topPanel)
         
     def setTempo(self, tempo):
         self.midiPlayer.setTempo(tempo)
@@ -863,7 +955,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         # show dialog
         
         self.cursorItem.changeInstrument(numInst)
-        
+                
 
 def main():
     
