@@ -8,7 +8,9 @@ import threading
 from PyQt4 import QtGui, QtCore
 
 import Tracks
+import AudioTracks
 import MidiPlayer
+import AudioPlayer
 import SelectionRectangle
 import Cursor
 import GenerateData
@@ -22,7 +24,8 @@ class MainWindow(QtGui.QMainWindow):
     
         super(MainWindow, self).__init__()
         
-        self.midiPlayer = MidiPlayer.MidiPlayer()        
+        self.midiPlayer = MidiPlayer.MidiPlayer()  
+        self.audioPlayer = AudioPlayer.AudioPlayer()      
                 
         self.initUI()
         
@@ -120,19 +123,10 @@ class MainWindow(QtGui.QMainWindow):
 #        icon = QtGui.QIcon("startButton-grainy.png")
         icon = QtGui.QIcon("startButton-sharp.png")
 #        icon = QtGui.QIcon("pauseButton.png")
-                
-#        self.topBar = QtGui.QWidget()
-#        self.topBar.setParent(self)
-#        self.topBar.setAutoFillBackground(True)
-
-#        self.leftBar = QtGui.QWidget()        
-#        self.leftBar.setParent(self)
-#        self.leftBar.setAutoFillBackground(True)
 
         self.playButton = QtGui.QPushButton(icon, "")
         self.playButton.setIconSize(QtCore.QSize(110, 110))
         self.playButton.setParent(self)
-#        self.tablatureWindow.scene.addWidget(self.playButton)
         self.playButton.setGeometry(0, 0, 100, 100)
 
         self.connectWidgets()
@@ -140,11 +134,6 @@ class MainWindow(QtGui.QMainWindow):
         self.positionWindow()       # center and almost maximize window
         
         self.show()
-        
-#        self.leftBar.setGeometry(0, 0, 100, self.tablatureWindow.viewport().height())
-#        self.topBar.setGeometry(0, 0, self.tablatureWindow.viewport().width(), 100)
-        
-#        self.setMouseTracking(True)
 
         
     def positionWindow(self):
@@ -168,7 +157,6 @@ class MainWindow(QtGui.QMainWindow):
                 f.write(self.tablatureWindow.getSaveFileData())                
                 self.prev_saveFilename = fname 
                 self.setWindowTitle(fname)
-#                self.tabWidget.setTabText(0, fname)
                 
     def saveAsPreviousFilename(self):
         if self.prev_saveFilename == '':            # if this is a new file and hasn't been saved yet
@@ -288,8 +276,6 @@ class MainWindow(QtGui.QMainWindow):
             return True
         except ValueError:
             return False
-#        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', 
-#                '~/Documents/coding/Tab Program/')
 
             
 
@@ -301,6 +287,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         self._parent = args[1]
                        
         self.midiPlayer = self._parent.midiPlayer
+        self.audioPlayer = self._parent.audioPlayer
 
         self.isPlaying = False
 
@@ -313,6 +300,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         else:
             self.tracks = [Tracks.Track(self, hasVocals='True'), 
                     Tracks.Track(self, numYGrid=7), 
+#                    AudioTracks.AudioTrack(self), 
                     Tracks.Track(self, hasVocals='True')]
             self.initializeTracks()
 
@@ -334,7 +322,8 @@ class TablatureWindow(QtGui.QGraphicsView):
         
         # initialize tracks to guitar
         for i in range(0, len(self.tracks)):
-            self.tracks[i].changeInstrument(27)
+            if self.tracks[i].__class__.__name__ is not 'AudioTrack':
+                self.tracks[i].changeInstrument(27)
         
         self.setTempo(140)
         
@@ -441,7 +430,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                 c = self.selectionRectangle.rect()
                 for i in range(0, len(self.tracks)):
                     # -1's are to make sure selection area doesn't select more than intended
-                    self.tracks[i].shadeSelectedNumbers(c.left(), c.top(), c.right()-1, c.bottom()-1)    
+                    self.tracks[i].shadeSelectedRegion(c.left(), c.top(), c.right()-1, c.bottom()-1)    
 
             else:    # if shift is not held
                 self.unSelect()

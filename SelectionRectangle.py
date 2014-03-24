@@ -49,7 +49,8 @@ class SelectionRectangle(QtGui.QGraphicsRectItem):
         self.setRect(x1, y1, (x2-x1), (y2-y1))
         
         for i in range(0, len(self.tracks)):
-            self.tracks[i].shadeSelectedNumbers(x1, y1, x20, y20)
+#            self.tracks[i].shadeSelectedNumbers(x1, y1, x20, y20)
+            self.tracks[i].shadeSelectedRegion(x1, y1, x20, y20)
 
     def whichTrackHasPoint(self, x, y):
         # if too high or too low, settle on nearest track

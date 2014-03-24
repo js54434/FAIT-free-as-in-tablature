@@ -85,7 +85,7 @@ class Track:
             self.setTuning('standard')
 
         self.calculateBoundsAndMargins()
-
+        
         
     # return pitch in midi integer notation
     def convertNumberToPitch(self, jPos, pitchNum):
@@ -286,7 +286,7 @@ class Track:
             return instNum
         else:   # if no previous instruments, produce warning and set to piano (0)
             print('no previous instruments; setting to piano')
-            instNum = 0
+            instNum = 1
             return instNum
             
     def getInstrumentAtCurrentIndex(self):
@@ -414,7 +414,7 @@ class Track:
         # play button
         self.playButton = QtGui.QPushButton("play")
         self.playButton.setParent(self._parent._parent)
-        self.playButton.setGeometry(self.left() - 50, self.top(), 20, 20)
+        self.playButton.setGeometry(self.left() - 50, self.trackTop(), 30, 30)
         QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
             self.toggleTrackPlayback)
         
@@ -559,13 +559,6 @@ class Track:
         elif i > self.numYGrid-1:                  # too low
             return self.convertIndexToPositionY(self.numYGrid-1 + (i1-i))
                                  
-#    def getCursorQRect(self):
-#        x1 = self.convertIndexToPositionX(self.iCursor)
-#        y1 = self.convertIndexToPositionY(self.jCursor)
-#        x2 = self.convertIndexToPositionX(self.iCursor+1)
-#        y2 = self.convertIndexToPositionY(self.jCursor+1)
-#        return QtCore.QRectF(x1, y1, x2-x1, y2-y1)
-
                     
     def isPositionInsideBoundary(self, xPos, yPos):
         if (xPos >= self.left() and xPos < self.right() and
@@ -658,7 +651,7 @@ class Track:
         for i in range(0, self.numYGrid):
             self.stringItems[i].setPen(QtCore.Qt.gray)        
             
-    def shadeSelectedNumbers(self, x11, y11, x22, y22):
+    def shadeSelectedRegion(self, x11, y11, x22, y22):
         iPos1 = self.getCursorIndexX(x11)
         jPos1 = self.getCursorIndexY(y11)
         iPos2 = self.getCursorIndexX(x22)
@@ -889,4 +882,9 @@ class Track:
             old_pos = pos
             item.setPos(pos.x()-dx, pos.y())        
         
+    def isTab(self):
+        return True
+        
+    def isAudio(self):
+        return False
         
