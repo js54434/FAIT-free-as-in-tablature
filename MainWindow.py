@@ -1,17 +1,12 @@
-# contains the main window, which contains the tablature window
+# the main window that contains the tablature window, menus, etc.
+# and coordinates dialog messages and keyboard shortcuts
+#
+# It also contains the midiPlayer object. 
 
-import time
-import random
-import sys
-import threading
 from PyQt4 import QtGui, QtCore
 
-#import Tracks
 import MidiPlayer
-#import SelectionRectangle
-#import Cursor
-#import GenerateData
-
+#import AudioPlayer
 import TablatureWindow
 
 

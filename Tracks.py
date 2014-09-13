@@ -2,9 +2,9 @@
 
 import ast          # for string-to-data conversion
 import math
-import sys
 import copy
 from PyQt4 import QtGui, QtCore
+
 
 # class for containing information about a track
 class Track:

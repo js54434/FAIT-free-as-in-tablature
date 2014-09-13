@@ -1,9 +1,7 @@
-import time
-import sys
-import os
-from PyQt4 import QtGui, QtCore
+# Generates test data. 
+# Also has methods to generate different chords and to repeat patterns. 
 
-import Tracks
+from PyQt4 import QtGui, QtCore
 
 
 class GenerateData:

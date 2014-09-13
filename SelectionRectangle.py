@@ -1,9 +1,7 @@
-import time
-import sys
-import os
-from PyQt4 import QtGui, QtCore
+# Selection rectangle, which contains coordinates of the area
+# of selection and numerous methods to make its manipulation easier. 
 
-import Tracks
+from PyQt4 import QtGui, QtCore
 
 
 class SelectionRectangle(QtGui.QGraphicsRectItem):

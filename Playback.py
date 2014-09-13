@@ -1,15 +1,8 @@
 # class used for playing midi
-import threading
-import fluidsynth
-import time
-import os
-import sys
 import math
 
-#import MidiPlayer   # reminder that we're using the midiPlayer object
-                    # contained in the parent object
-
 from PyQt4 import QtGui, QtCore
+
 
 class Playback:
     def __init__(self, parent):

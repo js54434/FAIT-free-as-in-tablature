@@ -1,7 +1,8 @@
 # contains fluidsynth server, which starts upon creation
-# set tempo
-# can play a note for a predefined duration
-# can change instrument
+# Also contains methods to:
+#   set tempo
+#   play a note for a predefined duration
+#   change instrument
 # 
 # basically, has methods that the tablature window should be exposed to
 # 
@@ -11,14 +12,16 @@
 
 import threading
 import fluidsynth
-import time
-import os
-import sys
 import math
 
-import PlayNote
+# these two are used when connecting to JACK or seeing if the platform 
+# is linux
+import os
+import sys
 
+import PlayNote
 #import AudioPlayer
+
 
 from PyQt4 import QtGui, QtCore
 

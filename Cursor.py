@@ -1,9 +1,7 @@
-import time
-import threading
-import os
+# Cursor object. 
+
 from PyQt4 import QtGui, QtCore
 
-import Tracks
 
 class Cursor(QtGui.QGraphicsRectItem):
     def __init__(self, parent, tracks):

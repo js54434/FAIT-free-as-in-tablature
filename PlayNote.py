@@ -5,13 +5,11 @@
 # handling the Threads
 
 import threading
-import fluidsynth
 import time
-import os
-import sys
 import math
 
 from PyQt4 import QtGui, QtCore
+
 
 class PlayNote(threading.Thread):
     def __init__(self, parent, fs, trackNum, pitch, volume, duration, sameNote):
