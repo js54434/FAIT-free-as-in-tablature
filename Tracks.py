@@ -35,7 +35,9 @@ class Track:
         self.sectionLineItems = []
         self.tickMarkItems = []
         self.tuningTextItems = []
+
         self.lyricsItems = []
+
         self.instrumentChanges = []
         self.floatingItems = []
                                     
@@ -594,6 +596,8 @@ class Track:
         else:
             return False
             
+    #def isPartOfRegionOnLyrics
+            
     def top(self):
         return self.y0
     
@@ -846,8 +850,9 @@ class Track:
             self.lyricsBoundary.setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.lyricsBoundary)
             
-#    def getLyricsAtPosition(self, xPos, yPos):
-        
+    def getLyricsAtPosition(self, xPos, yPos):
+        print('getLyricsAtPostion() (needs expansion)')
+        return []
         
     def toString(self):
         data = [[x[0],x[1],x[4]] for x in self.numberItems]

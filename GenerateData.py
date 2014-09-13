@@ -2,6 +2,8 @@
 # Also has methods to generate different chords and to repeat patterns. 
 
 from PyQt4 import QtGui, QtCore
+import time
+import random
 
 
 class GenerateData:
@@ -131,3 +133,13 @@ class GenerateData:
 #            print(st)
 #            st = file.readline()
         
+    def generateRandomTablatureData(self):
+        t1 = time.time()
+        for i in range(0, len(self.tracks)):
+            # worst case scenario: fill every number
+            for jx in range(0, self.tracks[i].numXGrid):
+                for jy in range(0, self.tracks[i].numYGrid):
+                    val = random.randint(0,9)
+                    self.tracks[i].addToTab(jx, jy, val)
+        t2 = time.time()
+        print("Random number generating time was %g seconds" % (t2 - t1))   

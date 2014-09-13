@@ -34,10 +34,10 @@ class TablatureWindow(QtGui.QGraphicsView):
             self.loadTracks(kwargs['loadFile'])
         else:
             self.tracks = [Tracks.Track(self, hasVocals='True'), 
-                    Tracks.Track(self, numYGrid=30), 
+                    Tracks.Track(self, numYGrid=7), 
 #                    AudioTracks.AudioTrack(self), 
                     Tracks.Track(self, hasVocals='True')]
-            self.initializeTracks()
+            self.positionTracks()
 
             self.scene.setSceneRect(QtCore.QRectF(0, 0, 
                     self.windowSizeX, self.windowSizeY))
@@ -53,7 +53,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         end_time = time.time()
         print("Initializing time was %g seconds" % (end_time - start_time))
         
-#        self.visualizeBoundaries()
+#        self.makeBoundariesVisibleForTesting()
         
         # initialize tracks to guitar
         for i in range(0, len(self.tracks)):
@@ -65,29 +65,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         self.generateData()
 
         
-    def initializeTracks(self):
-        self.prev_trackFocusNum = 0
-        self.trackFocusNum = 0       # to begin with, focus is on track 0
-        
-        self.xMar = 100          # margins from top and left side of window to topmost track
-        self.yMar = 100
-        self.trackMar = 50      # margin between tracks
-        
-        self.tracks[0].setX0(self.xMar)
-        self.tracks[0].setY0(self.yMar)
-        for i in range(0, len(self.tracks)):
-            if i > 0:
-                self.tracks[i].setX0(self.xMar)
-                self.tracks[i].setY0(self.tracks[i-1].y0 + \
-                            self.tracks[i-1].height + self.trackMar)
-            self.tracks[i].drawStuff()
-    
-        # calculate window size
-        self.windowSizeX = self.tracks[0].x0 + \
-                        self.tracks[0].dx*3 + self.tracks[0].width
-        self.windowSizeY = self.tracks[0].y0
-        for i in range(0, len(self.tracks)):
-            self.windowSizeY = self.windowSizeY + self.tracks[i].height + self.trackMar
+
         
     def defineKeyGroups(self):
         self.numberKeys = (QtCore.Qt.Key_0,
@@ -309,6 +287,43 @@ class TablatureWindow(QtGui.QGraphicsView):
         for i in range(0, len(self.tracks)):
             self.tracks[i].scrollFloatingItems(dx, dy)
 
+
+    def scrollIfNecessary(*args):
+        self = args[0]
+        if len(args) == 3:
+            x = args[1]
+            y = args[2]
+        else:
+            x = self.cursorItem.rect().x()
+            y = self.cursorItem.rect().y()
+            
+        scrollX = 16 * self.tracks[0].dx
+        scrollY = self.tracks[0].numYGrid * self.tracks[0].dy
+                        
+        cursorPoint = self.mapFromScene(x, y)
+        x_cur, y_cur = [cursorPoint.x(), cursorPoint.y()]
+
+        viewportCenterPoint = self.mapToScene(self.viewport().rect().center())
+        x = viewportCenterPoint.x()
+        y = viewportCenterPoint.y()
+
+        if x_cur > self.width()-80:
+            # we translate by moving center
+            self.centerOn(x+scrollX, y+1)           # "+1" is to correct for a bug in "centerOn"
+        elif x_cur < 10:
+            self.centerOn(x-scrollX, y+1)
+            
+        viewportCenterPoint = self.mapToScene(self.viewport().rect().center())
+        x = viewportCenterPoint.x()
+        y = viewportCenterPoint.y()
+        
+        if y_cur > self.height()-80:
+            self.centerOn(x+1, y+scrollY)
+        elif y_cur < 80:
+            self.centerOn(x+1, y-scrollY)
+
+        self.update()
+
                         
     def whichSidesOfSelectionRectangleIsCursorAt(self):
         sides = []
@@ -420,44 +435,9 @@ class TablatureWindow(QtGui.QGraphicsView):
             
         self.cursorItem.updateHighlighting()
             
-    def scrollIfNecessary(*args):
-        self = args[0]
-        if len(args) == 3:
-            x = args[1]
-            y = args[2]
-        else:
-            x = self.cursorItem.rect().x()
-            y = self.cursorItem.rect().y()
-            
-        scrollX = 16 * self.tracks[0].dx
-        scrollY = self.tracks[0].numYGrid * self.tracks[0].dy
-                        
-        cursorPoint = self.mapFromScene(x, y)
-        x_cur, y_cur = [cursorPoint.x(), cursorPoint.y()]
-
-        viewportCenterPoint = self.mapToScene(self.viewport().rect().center())
-        x = viewportCenterPoint.x()
-        y = viewportCenterPoint.y()
-
-        if x_cur > self.width()-80:
-            # we translate by moving center
-            self.centerOn(x+scrollX, y+1)           # "+1" is to correct for a bug in "centerOn"
-        elif x_cur < 10:
-            self.centerOn(x-scrollX, y+1)
-            
-        viewportCenterPoint = self.mapToScene(self.viewport().rect().center())
-        x = viewportCenterPoint.x()
-        y = viewportCenterPoint.y()
+    
         
-        if y_cur > self.height()-80:
-            self.centerOn(x+1, y+scrollY)
-        elif y_cur < 80:
-            self.centerOn(x+1, y-scrollY)
-
-        self.update()
-        
-    def visualizeBoundaries(self):
-        # for testing
+    def makeBoundariesVisibleForTesting(self):
         
         self.trackRects = []
         self.lyricsRects = []
@@ -556,26 +536,42 @@ class TablatureWindow(QtGui.QGraphicsView):
         self.topPanel.setPen(QtCore.Qt.transparent)
         self.topPanel.setZValue(40)
         self.scene.addItem(self.topPanel)
+
+
+    def positionTracks(self):
+        self.prev_trackFocusNum = 0
+        self.trackFocusNum = 0       # to begin with, focus is on track 0
+        
+        self.xMar = 100          # margins from top and left side of window to topmost track
+        self.yMar = 100
+        self.trackMar = 50      # margin between tracks
+        
+        self.tracks[0].setX0(self.xMar)
+        self.tracks[0].setY0(self.yMar)
+        for i in range(0, len(self.tracks)):
+            if i > 0:
+                self.tracks[i].setX0(self.xMar)
+                self.tracks[i].setY0(self.tracks[i-1].y0 + \
+                            self.tracks[i-1].height + self.trackMar)
+            self.tracks[i].drawStuff()
+    
+        # calculate window size
+        self.windowSizeX = self.tracks[0].x0 + \
+                        self.tracks[0].dx*3 + self.tracks[0].width
+        self.windowSizeY = self.tracks[0].y0
+        for i in range(0, len(self.tracks)):
+            self.windowSizeY = self.windowSizeY + self.tracks[i].height + self.trackMar
+            
         
     def setTempo(self, tempo):
         self.midiPlayer.setTempo(tempo)
         self.cursorItem.setBlinkTempo(tempo)
         self.updateStatusBar()
         
+        
     def updateStatusBar(self):
         self._parent.statusBar().showMessage('tempo: ' + str(self.midiPlayer.tempo))
 
-            
-    def generateRandomTablatureData(self):
-        t1 = time.time()
-        for i in range(0, len(self.tracks)):
-            # worst case scenario: fill every number
-            for jx in range(0, self.tracks[i].numXGrid):
-                for jy in range(0, self.tracks[i].numYGrid):
-                    val = random.randint(0,9)
-                    self.tracks[i].addToTab(jx, jy, val)
-        t2 = time.time()
-        print("Random number generating time was %g seconds" % (t2 - t1))    
 
     def togglePlayback(self):
         if self.isPlaying == False:
@@ -655,7 +651,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                                 
         
         # draw tracks' grids, tunings, and cursor, and arrange tracks
-        self.initializeTracks()
+        self.PositionTracks()
 #        self.initializeCursor()
 #        self.initializeSelectionRectangles()
         
