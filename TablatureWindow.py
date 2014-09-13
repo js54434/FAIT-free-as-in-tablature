@@ -16,6 +16,8 @@ import SelectionRectangle
 import Cursor
 import GenerateData
 
+import Playback
+
 import fluidsynth
 
 class TablatureWindow(QtGui.QGraphicsView):    
@@ -595,7 +597,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         # start playback:
         # test an overlay button
         self._parent.playButton.setIcon(QtGui.QIcon("pauseButton.png"))
-        self.playback = MidiPlayer.Playback(self)
+        self.playback = Playback.Playback(self)
         
     def stopPlayback(self):
         self.isPlaying = False
