@@ -4,13 +4,13 @@
 # everything starts here.
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 import MainWindow
 
 def main():
     
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ex = MainWindow.MainWindow()
     sys.exit(app.exec_())
 

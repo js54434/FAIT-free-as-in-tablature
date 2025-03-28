@@ -3,7 +3,7 @@
 import time
 import random
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 import Tracks
 #import AudioTracks
@@ -14,7 +14,7 @@ import GenerateData
 import Playback
 
 
-class TablatureWindow(QtGui.QGraphicsView):    
+class TablatureWindow(QtWidgets.QGraphicsView):    
     def __init__(*args, **kwargs):
         start_time = time.time()
         
@@ -26,8 +26,8 @@ class TablatureWindow(QtGui.QGraphicsView):
 
         self.isPlaying = False
 
-        QtGui.QGraphicsView.__init__(self)    
-        self.scene = QtGui.QGraphicsScene(self)
+        QtWidgets.QGraphicsView.__init__(self)    
+        self.scene = QtWidgets.QGraphicsScene(self)
         self.setScene(self.scene)
 
         if 'loadFile' in kwargs:
@@ -57,7 +57,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         
         # initialize tracks to guitar
         for i in range(0, len(self.tracks)):
-            if self.tracks[i].__class__.__name__ is not 'AudioTrack':
+            if self.tracks[i].__class__.__name__ != 'AudioTrack':
                 self.tracks[i].changeInstrument(27)
         
         self.setTempo(140)
@@ -96,13 +96,13 @@ class TablatureWindow(QtGui.QGraphicsView):
     def keyPressEvent(self, e):
         i = self.trackFocusNum
         key = e.key()
-        modifiers = QtGui.QApplication.keyboardModifiers()
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
 
         if self.cursorItem.isInLyrics == True:
             if key == QtCore.Qt.Key_Down:
                 self.cursorItem.leaveLyrics()
             else:
-                QtGui.QGraphicsView.keyPressEvent(self, e)
+                QtWidgets.QGraphicsView.keyPressEvent(self, e)
             return
         # else, cursor is in track, and we do the following
         
@@ -176,7 +176,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             else:
                 # if there is a number, check if could be the first digit of a two-digit number
                 maxVal = 24         # highest number allowed
-                maxDigit = (maxVal - (maxVal % 10)) / 10        # maximum of second digit
+                maxDigit = int((maxVal - (maxVal % 10)) / 10)        # maximum of second digit
                 if val in range(1, maxDigit+1):
                     # add second digit to number
                     num2 = val*10 + num
@@ -245,7 +245,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                 self.cursorItem.enterLyrics(xPos, yPos)
             # if mouse clicked on lyrics, then default to standard behavior, 
             # which is to edit the lyrics
-            QtGui.QGraphicsView.mousePressEvent(self, e)
+            QtWidgets.QGraphicsView.mousePressEvent(self, e)
 
     def mouseMoveEvent(self, e):        
         if e.buttons() == QtCore.Qt.LeftButton:
@@ -255,7 +255,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             
             i1 = self.whichTrackHasPoint(xPos, yPos)
             if self.tracks[i1].isPositionOnLyrics(xPos, yPos) == True:
-                QtGui.QGraphicsView.mouseMoveEvent(self, e)
+                QtWidgets.QGraphicsView.mouseMoveEvent(self, e)
             else:
                 # shade all rectangles within this area
                 self.selectionRectangle.updateSelectionRectangle(
@@ -270,7 +270,7 @@ class TablatureWindow(QtGui.QGraphicsView):
 #        pass
 
     def scrollContentsBy(self, dx, dy):
-        QtGui.QGraphicsView.scrollContentsBy(self, dx, dy)
+        QtWidgets.QGraphicsView.scrollContentsBy(self, dx, dy)
         
         # move button to compensate
 #        rect = self._parent.playButton.geometry()
@@ -451,7 +451,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             y1 = self.tracks[i].top()
             x2 = self.tracks[i].right()
             y2 = self.tracks[i].bottom()
-            self.trackRects.append(QtGui.QGraphicsRectItem(x1, y1, (x2-x1), (y2-y1)))
+            self.trackRects.append(QtWidgets.QGraphicsRectItem(x1, y1, (x2-x1), (y2-y1)))
             self.trackRects[i].setPen(QtCore.Qt.blue)
             self.trackRects[i].setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.trackRects[i])
@@ -460,7 +460,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             if self.tracks[i].hasVocals == True:
                 y1 = self.tracks[i].lyricsTop()
                 y2 = self.tracks[i].lyricsBottom()
-                self.lyricsRects.append(QtGui.QGraphicsRectItem(x1, y1, (x2-x1), (y2-y1)))
+                self.lyricsRects.append(QtWidgets.QGraphicsRectItem(x1, y1, (x2-x1), (y2-y1)))
                 self.lyricsRects[j].setPen(QtCore.Qt.red)
                 self.lyricsRects[j].setBrush(QtCore.Qt.transparent)
                 self.scene.addItem(self.lyricsRects[j])
@@ -469,7 +469,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             # string boundaries
             y1 = self.tracks[i].trackTop()
             y2 = self.tracks[i].trackBottom()
-            self.stringRects.append(QtGui.QGraphicsRectItem(x1, y1, x2-x1, y2-y1))
+            self.stringRects.append(QtWidgets.QGraphicsRectItem(x1, y1, x2-x1, y2-y1))
             self.stringRects[i].setPen(QtCore.Qt.green)
             self.stringRects[i].setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.stringRects[i])
@@ -478,7 +478,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             y2 = self.tracks[0].top()
             x1 = 0
             x2 = self.tracks[0].right()
-            self.topBarRect = QtGui.QGraphicsRectItem(x1, y1, x2-x1, y2-y1)
+            self.topBarRect = QtWidgets.QGraphicsRectItem(x1, y1, x2-x1, y2-y1)
             self.topBarRect.setPen(QtCore.Qt.gray)
             self.topBarRect.setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.topBarRect)
@@ -487,7 +487,7 @@ class TablatureWindow(QtGui.QGraphicsView):
             y2 = self.tracks[len(self.tracks)-1].bottom()
             x1 = 0
             x2 = self.tracks[0].left()
-            self.leftBarRect = QtGui.QGraphicsRectItem(x1, y1, x2-x1, y2-y1)
+            self.leftBarRect = QtWidgets.QGraphicsRectItem(x1, y1, x2-x1, y2-y1)
             self.leftBarRect.setPen(QtCore.Qt.gray)
             self.leftBarRect.setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.leftBarRect)
@@ -525,13 +525,13 @@ class TablatureWindow(QtGui.QGraphicsView):
         
     def initializePanels(self):
 #        self.tablatureWindow.viewport().height()
-        self.leftPanel = QtGui.QGraphicsRectItem(0, 0, 100, self.windowSizeY)
+        self.leftPanel = QtWidgets.QGraphicsRectItem(0, 0, 100, self.windowSizeY)
         self.leftPanel.setBrush(QtCore.Qt.lightGray)
         self.leftPanel.setPen(QtCore.Qt.transparent)
         self.leftPanel.setZValue(40)
         self.scene.addItem(self.leftPanel)
         
-        self.topPanel = QtGui.QGraphicsRectItem(0, 0, 2000, 100)
+        self.topPanel = QtWidgets.QGraphicsRectItem(0, 0, 2000, 100)
         self.topPanel.setBrush(QtCore.Qt.lightGray)
         self.topPanel.setPen(QtCore.Qt.transparent)
         self.topPanel.setZValue(40)
@@ -565,6 +565,7 @@ class TablatureWindow(QtGui.QGraphicsView):
         
     def setTempo(self, tempo):
         self.midiPlayer.setTempo(tempo)
+        print('tempo = '+str(tempo))
         self.cursorItem.setBlinkTempo(tempo)
         self.updateStatusBar()
         
@@ -651,7 +652,7 @@ class TablatureWindow(QtGui.QGraphicsView):
                                 
         
         # draw tracks' grids, tunings, and cursor, and arrange tracks
-        self.PositionTracks()
+        self.positionTracks()
 #        self.initializeCursor()
 #        self.initializeSelectionRectangles()
         

@@ -3,14 +3,14 @@
 #
 # It also contains the midiPlayer object. 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 import MidiPlayer
 #import AudioPlayer
 import TablatureWindow
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         self.prev_saveFilename = ''
     
@@ -26,7 +26,7 @@ class MainWindow(QtGui.QMainWindow):
         self.statusBar()
         
         # add TablatureWindow
-        self.stackedWidget = QtGui.QStackedWidget()
+        self.stackedWidget = QtWidgets.QStackedWidget()
         self.setCentralWidget(self.stackedWidget)
         self.setWindowTitle('FAIT Tablature Editor')    
 
@@ -42,31 +42,31 @@ class MainWindow(QtGui.QMainWindow):
         editMenu = menubar.addMenu('&Edit')
         trackMenu = menubar.addMenu('&Track')
         
-        newFile = QtGui.QAction(QtGui.QIcon('new.png'), 'New Tab', self)
+        newFile = QtWidgets.QAction(QtGui.QIcon('new.png'), 'New Tab', self)
         newFile.setShortcut(QtGui.QKeySequence.New)
         newFile.setStatusTip('New tab')
         newFile.triggered.connect(self.startNewTablature)
         
-        openFile = QtGui.QAction(QtGui.QIcon('open.png'), 'Open...', self)
+        openFile = QtWidgets.QAction(QtGui.QIcon('open.png'), 'Open...', self)
         openFile.setShortcut(QtGui.QKeySequence.Open)
         openFile.setStatusTip('Open file')
         openFile.triggered.connect(self.showOpenDialog)
         
-        saveAsFile = QtGui.QAction(QtGui.QIcon('save.png'), 'Save As...', self)
+        saveAsFile = QtWidgets.QAction(QtGui.QIcon('save.png'), 'Save As...', self)
         saveAsFile.setShortcut(QtGui.QKeySequence.SaveAs)
         saveAsFile.setStatusTip('Save file')
         saveAsFile.triggered.connect(self.showSaveAsDialog)
         
-        saveFile = QtGui.QAction(QtGui.QIcon('save.png'), 'Save', self)
+        saveFile = QtWidgets.QAction(QtGui.QIcon('save.png'), 'Save', self)
         saveFile.setShortcut(QtGui.QKeySequence.Save)
         saveFile.setStatusTip('Save file')
         saveFile.triggered.connect(self.saveAsPreviousFilename)
         
-        runScript = QtGui.QAction('Run Script...', self)
+        runScript = QtWidgets.QAction('Run Script...', self)
         runScript.setStatusTip('Run script')
         runScript.triggered.connect(self.runScript)
         
-        quitApp = QtGui.QAction('Quit', self)
+        quitApp = QtWidgets.QAction('Quit', self)
         quitApp.setShortcut(QtGui.QKeySequence.Quit)
         quitApp.setStatusTip('Quit')
         quitApp.triggered.connect(self.quitApp)
@@ -78,17 +78,17 @@ class MainWindow(QtGui.QMainWindow):
         fileMenu.addAction(runScript)
         fileMenu.addAction(quitApp)
 
-        cutSelection = QtGui.QAction('Cut', self)
+        cutSelection = QtWidgets.QAction('Cut', self)
         cutSelection.setShortcut(QtGui.QKeySequence.Cut)
         cutSelection.setStatusTip('Cut')
         cutSelection.triggered.connect(self.cutSelection)
 
-        copySelection = QtGui.QAction('Copy', self)
+        copySelection = QtWidgets.QAction('Copy', self)
         copySelection.setShortcut(QtGui.QKeySequence.Copy)
         copySelection.setStatusTip('Copy')
         copySelection.triggered.connect(self.copySelection)
 
-        pasteSelection = QtGui.QAction('Paste', self)
+        pasteSelection = QtWidgets.QAction('Paste', self)
         pasteSelection.setShortcut(QtGui.QKeySequence.Paste)
         pasteSelection.setStatusTip('Paste')
         pasteSelection.triggered.connect(self.pasteSelection)
@@ -97,12 +97,12 @@ class MainWindow(QtGui.QMainWindow):
         editMenu.addAction(copySelection)
         editMenu.addAction(pasteSelection)
         
-        changeInstrument = QtGui.QAction('change instrument', self)
+        changeInstrument = QtWidgets.QAction('change instrument', self)
         changeInstrument.setShortcut('Ctrl+I')
         changeInstrument.setStatusTip('change instrument')
         changeInstrument.triggered.connect(self.changeInstrument)
         
-        changeTempo = QtGui.QAction('change tempo', self)
+        changeTempo = QtWidgets.QAction('change tempo', self)
         changeTempo.setShortcut('Ctrl+T')
         changeTempo.setStatusTip('change tempo')
         changeTempo.triggered.connect(self.changeTempo)
@@ -116,7 +116,7 @@ class MainWindow(QtGui.QMainWindow):
         icon = QtGui.QIcon("startButton-sharp.png")
 #        icon = QtGui.QIcon("pauseButton.png")
 
-        self.playButton = QtGui.QPushButton(icon, "")
+        self.playButton = QtWidgets.QPushButton(icon, "")
         self.playButton.setIconSize(QtCore.QSize(110, 110))
         self.playButton.setParent(self)
         self.playButton.setGeometry(0, 0, 100, 100)
@@ -130,17 +130,17 @@ class MainWindow(QtGui.QMainWindow):
         
     def positionWindow(self):
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
-        width = QtGui.QDesktopWidget().availableGeometry().width() - 100
-        height = QtGui.QDesktopWidget().availableGeometry().height() - 100
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        width = QtWidgets.QDesktopWidget().availableGeometry().width() - 100
+        height = QtWidgets.QDesktopWidget().availableGeometry().height() - 100
         self.resize(width, height)
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())  
         
     def showSaveAsDialog(self):
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', 
+        fname, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', 
                 '~/Documents/coding/Tab Program/')
         if fname != '':     # if "cancel" was not pressed
             f = open(fname, 'w')
@@ -161,7 +161,7 @@ class MainWindow(QtGui.QMainWindow):
                 f.write(self.tablatureWindow.getSaveFileData())
                 
     def showOpenDialog(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', 
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
                 '~/Documents/coding/Tab Program/')
         
         # in the future, check if current file has been saved
@@ -194,7 +194,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tablatureWindow.setFocus()
         
     def runScript(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', 
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
                 '~/Documents/coding/Tab Program/')
         if fname != '':
             f = open(fname, 'r')
@@ -210,12 +210,14 @@ class MainWindow(QtGui.QMainWindow):
         self.close()
             
     def disconnectWidgets(self):
-        QtCore.QObject.disconnect(self.playButton, QtCore.SIGNAL("released()"), 
-            self.tablatureWindow.togglePlayback)
+        self.playButton.released.disconnect(self.tablatureWindow.togglePlayback)
+        # QtCore.QObject.disconnect(self.playButton, QtCore.SIGNAL("released()"), 
+        #     self.tablatureWindow.togglePlayback)
             
     def connectWidgets(self):
-        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
-            self.tablatureWindow.togglePlayback)
+        self.playButton.released.connect(self.tablatureWindow.togglePlayback)
+        # QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
+        #     self.tablatureWindow.togglePlayback)
 
     def resizeWidgets(self):
         print('resizeWidgets()')
@@ -232,7 +234,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tablatureWindow.pasteSelection()
         
     def changeInstrument(self):
-        numStr, ok = QtGui.QInputDialog.getText(self, '', 'Type instrument number (1-128):')
+        numStr, ok = QtWidgets.QInputDialog.getText(self, '', 'Type instrument number (1-128):')
 
         if ok:
             if self.is_number(numStr):
@@ -247,7 +249,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.showError('instrument number must be an integer 0 or greater')
                 
     def changeTempo(self):
-        numStr, ok = QtGui.QInputDialog.getText(self, '', 'Type tempo in bpm (30-500)')
+        numStr, ok = QtWidgets.QInputDialog.getText(self, '', 'Type tempo in bpm (30-500)')
         
         if ok:
             if self.is_number(numStr):
@@ -259,7 +261,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.showError('Tempo must be a number.')
 
     def showError(self, errorStr):
-        QtGui.QMessageBox.warning(self, "Error:", errorStr)
+        QtWidgets.QMessageBox.warning(self, "Error:", errorStr)
 
 
     def is_number(self, s):

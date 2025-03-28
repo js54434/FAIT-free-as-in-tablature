@@ -1,9 +1,9 @@
 # Cursor object. 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 
-class Cursor(QtGui.QGraphicsRectItem):
+class Cursor(QtWidgets.QGraphicsRectItem):
     def __init__(self, parent, tracks):
         self._parent = parent
         self.doesDraw = True
@@ -19,7 +19,7 @@ class Cursor(QtGui.QGraphicsRectItem):
         self.prev_iCursor, self.prev_jCursor = [0, 0]
         self.isInLyrics = False
 
-        QtGui.QGraphicsRectItem.__init__(self, 0, 0, 0, 0)
+        QtWidgets.QGraphicsRectItem.__init__(self, 0, 0, 0, 0)
         self.setPen(QtCore.Qt.black)
         self.setBrush(QtCore.Qt.black)
         
@@ -32,7 +32,7 @@ class Cursor(QtGui.QGraphicsRectItem):
                 
     def setBlinkTempo(self, tempo):
         t = 1000.0 / (tempo / 60.0)     # convert beats per min to ms per beat
-        self.timer.start(t)
+        self.timer.start(int(t))
         
     def invertColors(self):
         self.doesDraw = not self.doesDraw

@@ -3,7 +3,7 @@
 import ast          # for string-to-data conversion
 import math
 import copy
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 
 # class for containing information about a track
@@ -136,7 +136,7 @@ class Track:
             items = self.getGraphicsItems(iPos, jPos)
             if len(items) == 0:
                 text = val
-                textItem = QtGui.QGraphicsSimpleTextItem(text)
+                textItem = QtWidgets.QGraphicsSimpleTextItem(text)
                 textItem.setZValue(self.numberZValue)
                 textItem.setBrush(QtCore.Qt.black)
                 if iPos % 2 == 1:
@@ -146,7 +146,7 @@ class Track:
                 self.scene.addItem(textItem)
                 
                 # little background rectangle to block strings from showing
-                rectItem = QtGui.QGraphicsPolygonItem()
+                rectItem = QtWidgets.QGraphicsPolygonItem()
                 rectItem.setZValue(self.numberBackgroundZValue)
                 rectItem.setBrush(QtCore.Qt.white)
                 rectItem.setPen(QtCore.Qt.transparent)
@@ -169,7 +169,7 @@ class Track:
         items = self.getGraphicsItems(iPos, jPos)
         if len(items) == 0:
             text = str(val)
-            textItem = QtGui.QGraphicsSimpleTextItem(text)
+            textItem = QtWidgets.QGraphicsSimpleTextItem(text)
             textItem.setZValue(self.numberZValue)
             textItem.setBrush(QtCore.Qt.black) 
             if iPos % 2 == 1:
@@ -181,7 +181,7 @@ class Track:
             self.scene.addItem(textItem)
 
             # little background rectangle to block strings from showing
-            rectItem = QtGui.QGraphicsPolygonItem()
+            rectItem = QtWidgets.QGraphicsPolygonItem()
             rectItem.setZValue(self.numberBackgroundZValue)
             rectItem.setBrush(QtCore.Qt.white)
             rectItem.setPen(QtCore.Qt.transparent)
@@ -261,14 +261,14 @@ class Track:
             self.instrumentChanges.remove(insts[0])
         
         text = str(numInst)
-        instrumentItem = QtGui.QGraphicsSimpleTextItem(text)
+        instrumentItem = QtWidgets.QGraphicsSimpleTextItem(text)
         instrumentItem.setZValue(self.numberZValue)
         instrumentItem.setBrush(QtCore.Qt.black)
         instrumentItem.setFont(self.numberFont)
         self.scene.addItem(instrumentItem)
         
         # little background rectangle
-        rectItem = QtGui.QGraphicsPolygonItem()
+        rectItem = QtWidgets.QGraphicsPolygonItem()
         rectItem.setZValue(self.numberBackgroundZValue)
         rectItem.setBrush(QtCore.Qt.white)
         rectItem.setPen(QtCore.Qt.transparent)
@@ -310,10 +310,10 @@ class Track:
     def setTextItemPosition(self, items):
         iPos, jPos, textItem, rectItem, val = items
         
-        tw = textItem.boundingRect().width()
-        th = textItem.boundingRect().height()
-        x1 = self.convertIndexToPositionX(iPos) + self.dx/2 - tw/2
-        y1 = self.convertIndexToPositionY(jPos) + self.dy/2 - th/2
+        tw = int(textItem.boundingRect().width())
+        th = int(textItem.boundingRect().height())
+        x1 = int(self.convertIndexToPositionX(iPos) + self.dx/2 - tw/2)
+        y1 = int(self.convertIndexToPositionY(jPos) + self.dy/2 - th/2)
         textItem.setPos(x1, y1)        
         x2 = x1 + tw
         y2 = y1 + th
@@ -322,7 +322,7 @@ class Track:
             QtCore.QPoint(x1,y2), 
             QtCore.QPoint(x2,y2), 
             QtCore.QPoint(x2,y1)]))        
-                
+
     def drawStringItems(self):
         # draw strings
         for i in range(0, self.numYGrid):
@@ -330,7 +330,7 @@ class Track:
             y1 = self.convertIndexToPositionY(0.5+i)
             x2 = self.convertIndexToPositionX(self.numXGrid)
             y2 = y1
-            self.stringItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+            self.stringItems.append(QtWidgets.QGraphicsLineItem(x1, y1, x2, y2))
             self.stringItems[i].setPen(QtCore.Qt.lightGray)
             self.stringItems[i].setZValue(self.stringZValue)
             self.scene.addItem(self.stringItems[i])
@@ -348,7 +348,7 @@ class Track:
         for i in range(0, numBarLines):
             x1 = self.convertIndexToPositionX((i-1)*16)
             x2 = x1
-            self.barLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+            self.barLineItems.append(QtWidgets.QGraphicsLineItem(x1, y1, x2, y2))
             self.barLineItems[i].setPen(QtCore.Qt.black)
             self.barLineItems[i].setZValue(self.barLineZValue)
             self.scene.addItem(self.barLineItems[i])
@@ -362,7 +362,7 @@ class Track:
         for i in range(0, numTickMarks-1):
             x1 = self.convertIndexToPositionX(i*4 + 0.5)
             x2 = x1
-            tickMarkItem = QtGui.QGraphicsLineItem(x1, y1, x2, y2)
+            tickMarkItem = QtWidgets.QGraphicsLineItem(x1, y1, x2, y2)
             tickMarkItem.setPen(QtCore.Qt.gray)
             tickMarkItem.setZValue(self.tickMarkZValue)
             self.tickMarkItems.append(tickMarkItem)
@@ -379,14 +379,14 @@ class Track:
         
         x1 = self.convertIndexToPositionX(0)
         x2 = x1
-        self.sectionLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+        self.sectionLineItems.append(QtWidgets.QGraphicsLineItem(x1, y1, x2, y2))
         self.sectionLineItems[0].setPen(QtGui.QPen(QtCore.Qt.black, 3))
         self.sectionLineItems[0].setZValue(self.sectionLineZValue)
         self.scene.addItem(self.sectionLineItems[0])
 
         x1 = self.convertIndexToPositionX(self.numXGrid)
         x2 = x1
-        self.sectionLineItems.append(QtGui.QGraphicsLineItem(x1, y1, x2, y2))
+        self.sectionLineItems.append(QtWidgets.QGraphicsLineItem(x1, y1, x2, y2))
         self.sectionLineItems[1].setPen(QtGui.QPen(QtCore.Qt.black, 3))
         self.sectionLineItems[1].setZValue(self.sectionLineZValue)
         self.scene.addItem(self.sectionLineItems[1])
@@ -394,7 +394,7 @@ class Track:
     def drawTuning(self):
         for j in range(0, self.numStrings):
             text = self.convertPitchToLetter(self.stringTuning[self.numStrings-1-j])
-            textItem = QtGui.QGraphicsSimpleTextItem(text)
+            textItem = QtWidgets.QGraphicsSimpleTextItem(text)
             textItem.setBrush(QtCore.Qt.black)
             textItem.setPen(QtCore.Qt.black)
             textItem.setZValue(self.tuningZValue)
@@ -414,11 +414,12 @@ class Track:
             
     def addButtons(self):
         # play button
-        self.playButton = QtGui.QPushButton("play")
+        self.playButton = QtWidgets.QPushButton("play")
         self.playButton.setParent(self._parent._parent)
-        self.playButton.setGeometry(self.left() - 50, self.trackTop(), 30, 30)
-        QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
-            self.toggleTrackPlayback)
+        self.playButton.setGeometry(self.left() - 100, self.trackTop(), 60, 40)
+        self.playButton.released.connect(self.toggleTrackPlayback)        
+        # QtCore.QObject.connect(self.playButton, QtCore.SIGNAL("released()"), 
+        #     self.toggleTrackPlayback)
         
         # add everything to self.floatingItems list
         self.floatingItems = [self.playButton]
@@ -777,12 +778,12 @@ class Track:
         for i in range(0, len(itemList)):            
             x = itemList[i]
             text = x[2].text()
-            textItem = QtGui.QGraphicsSimpleTextItem(text)
+            textItem = QtWidgets.QGraphicsSimpleTextItem(text)
             textItem.setZValue(self.numberZValue)
             textItem.setBrush(QtCore.Qt.black)
             
             # little background rectangle to block strings from showing
-            rectItem = QtGui.QGraphicsPolygonItem()
+            rectItem = QtWidgets.QGraphicsPolygonItem()
             rectItem.setZValue(self.numberBackgroundZValue)
             rectItem.setBrush(QtCore.Qt.white)
             rectItem.setPen(QtCore.Qt.transparent)
@@ -819,7 +820,7 @@ class Track:
             items[0][3].setBrush(QtCore.Qt.white)
             
     def setLyrics(self, text):
-        self.lyricsItem = QtGui.QGraphicsTextItem(text)
+        self.lyricsItem = QtWidgets.QGraphicsTextItem(text)
         x = self.left()
         y = self.lyricsTop() + self.lyricsItem.boundingRect().height() / 2
         
@@ -845,7 +846,7 @@ class Track:
             y2 = self.lyricsBottom()
             w = x2 - x1
             h = y2 - y1
-            self.lyricsBoundary = QtGui.QGraphicsRectItem(x1, y1, w, h)
+            self.lyricsBoundary = QtWidgets.QGraphicsRectItem(x1, y1, w, h)
             self.lyricsBoundary.setPen(QtCore.Qt.black)
             self.lyricsBoundary.setBrush(QtCore.Qt.transparent)
             self.scene.addItem(self.lyricsBoundary)

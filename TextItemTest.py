@@ -5,7 +5,7 @@
 # this is practice for dealing with lyrics lines
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 
 class MainWindow(QtGui.QMainWindow):

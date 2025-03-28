@@ -1,0 +1,38 @@
+number of tracks:
+3
+track 0
+hasVocals?
+True
+numXGrid:
+4000
+numYGrid:
+6
+Raw track data:
+[]
+[[0, 27]]
+
+
+track 1
+hasVocals?
+False
+numXGrid:
+4000
+numYGrid:
+7
+Raw track data:
+[]
+[[0, 27]]
+
+
+track 2
+hasVocals?
+True
+numXGrid:
+4000
+numYGrid:
+6
+Raw track data:
+[]
+[[0, 27]]
+
+

@@ -1,7 +1,7 @@
 # class used for playing midi
 import math
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 
 class Playback:
@@ -22,10 +22,11 @@ class Playback:
                 self.midiPlayer.changeInstrument(i, inst)
 
         self.timer = QtCore.QTimer()
-        QtCore.QObject.connect(
-            self.timer, 
-            QtCore.SIGNAL("timeout()"),
-            self.playOneStep)
+        self.timer.timeout.connect(self.playOneStep)
+        # QtCore.QObject.connect(
+        #     self.timer, 
+        #     QtCore.SIGNAL("timeout()"),
+        #     self.playOneStep)
 
 
         # start audio playback

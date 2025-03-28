@@ -1,12 +1,12 @@
 # Selection rectangle, which contains coordinates of the area
 # of selection and numerous methods to make its manipulation easier. 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 
-class SelectionRectangle(QtGui.QGraphicsRectItem):
+class SelectionRectangle(QtWidgets.QGraphicsRectItem):
     def __init__(self, tracks, x1, y1, x2, y2):
-        QtGui.QGraphicsRectItem.__init__(self, x1, y1, x2, y2)
+        QtWidgets.QGraphicsRectItem.__init__(self, x1, y1, x2, y2)
         self.tracks = tracks
 
     def updateSelectionRectangle(*args):

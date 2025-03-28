@@ -3,7 +3,7 @@ import ast          # for string-to-data conversion
 import math
 import sys
 import copy
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 import pyaudio
 import wave

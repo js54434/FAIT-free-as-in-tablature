@@ -8,7 +8,7 @@ import threading
 import time
 import math
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 
 class PlayNote(threading.Thread):

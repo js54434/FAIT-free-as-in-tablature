@@ -1,7 +1,7 @@
 # Generates test data. 
 # Also has methods to generate different chords and to repeat patterns. 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 import time
 import random
 
