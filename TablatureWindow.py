@@ -636,7 +636,7 @@ class TablatureWindow(QtWidgets.QGraphicsView):
                 print(lineStr)
                 lineStr = file.readline()
                 print(lineStr)
-                hasVocals1 =  = lineStr.strip('\n') # 'True' if has vocals
+                hasVocals1 = lineStr.strip('\n') # 'True' if has vocals
                 lineStr = file.readline()                     # "numXGrid"                                
                 print(lineStr)
                 lineStr = file.readline()

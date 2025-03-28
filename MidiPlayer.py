@@ -37,8 +37,7 @@ class MidiPlayer:
             os.system("jack_connect fluidsynth:r_00 system:playback_2")
 
 #        self.sfid = self.fs.sfload("FluidR3_GM.sf2")
-        # self.sfid = self.fs.sfload("/usr/share/sounds/sf2/Scc1t2.sf2")
-        self.sfid = self.fs.sfload("gm.sf2")
+        self.sfid = self.fs.sfload("../../gm.sf2")
         
         # track number, sfid, bank number, instrument number
         self.fs.program_select(0, self.sfid, 0, 0)
