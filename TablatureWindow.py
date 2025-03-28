@@ -632,17 +632,26 @@ class TablatureWindow(QtWidgets.QGraphicsView):
         for i in range(0, numTracks):
             st = file.readline()                    # 'track' + no.
             if st != '':        # if not end of file
-                file.readline()                     # "hasVocals?"
-                hasVocals1 = file.readline().strip('\n') # 'True' if has vocals
-                file.readline()                     # "numXGrid"                                
-                numXGrid1 = int(file.readline())     
-                file.readline()                     # "numYGrid"
-                numYGrid1 = int(file.readline())     
-                file.readline()                     
-                st = file.readline()                
-                dataStrings.append(st)              # get raw data
-                st = file.readline()
-                instStrings.append(st)              # get instrument data
+                lineStr = file.readline()                     # "hasVocals?"
+                print(lineStr)
+                lineStr = file.readline()
+                print(lineStr)
+                hasVocals1 =  = lineStr.strip('\n') # 'True' if has vocals
+                lineStr = file.readline()                     # "numXGrid"                                
+                print(lineStr)
+                lineStr = file.readline()
+                print(lineStr)
+                numXGrid1 = int(lineStr)     
+                lineStr = file.readline()
+                print(lineStr)
+                lineStr = file.readline()
+                print(lineStr)
+                numYGrid1 = int(lineStr)     
+                lineStr = file.readline()                     
+                lineStr = file.readline()                
+                dataStrings.append(lineStr)              # get raw data
+                lineStr = file.readline()
+                instStrings.append(lineStr)              # get instrument data
                 
                 file.readline()                     # blank
                 file.readline()                     # blank
